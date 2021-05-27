@@ -1,0 +1,550 @@
+using System;
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+public class PlayerMovement : Movement
+{
+    //Assingables
+    public Transform playerCam;
+    public Transform orientation;
+    public PlayerShooting playerShooting;
+
+    //Other
+    private Rigidbody rb;
+
+    // Ground Check
+    public Transform groundCheck;
+    public float groundDistance = 0.4f;
+
+    //Rotation and look
+    private float xRotation;
+    private float desiredX;
+    private float sensitivity = 50f;
+    private float sensMultiplier = 1f;
+    public float crouchGunDegree = 50;
+
+    //Movement
+    private readonly int moveSpeed = 4500;
+    private readonly int crouchMoveSpeed = 3000;
+    private readonly int maxBaseSpeed = 20;
+    private readonly int maxCrouchSpeed = 10;
+    private readonly float counterMovement = 0.175f;
+    private readonly float threshold = 0.01f;
+    private bool shouldSlide;
+    public int climbForce = 1000;
+    public LayerMask whatIsGround;
+    public bool grounded;
+
+    //Crouch & Slide
+    private Vector3 crouchScale = new Vector3(1, 1, 1);
+    private Vector3 playerScale;
+    public float slideForce = 400;
+    public float slideCounterMovement = 0.2f;
+
+    public bool isSliding = false;
+
+    //Jumping
+    public float jumpForce = 550f;
+    private readonly int maxJumps = 2;
+    private int jumpsAvaliable = 2;
+
+    //Input
+    private float x, y;
+    private bool jumping = false, crouching = false;
+
+    //Wallrunning
+    public LayerMask whatIsWall;
+    public Transform wallCheck;
+    private readonly float wallDistance = 1f;
+    public float wallrunForce, maxWallrunTime;
+    public float maxWallRunCameraTilt, wallRunCameraTilt;
+    private readonly float leftHandPosition = -1.15f, rightHandPosition = -0.3f;
+    private float currentHandPosition = .15f;
+    private float wallRunSpeed = 100f, maxWallRunSpeed = 40f;
+    public float timeOnWall, maxtimeOnWall = 3f;
+    private bool isWallRight, isWallLeft, isWallForward, isWallBackward;
+    public Transform gunPosition;
+
+    public bool IsOnWall { get; private set; }
+
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody>();
+    }
+
+    void Start()
+    {
+        playerScale = transform.localScale;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    private void FixedUpdate()
+    {
+        Movement();
+    }
+
+    private void Update()
+    {
+        grounded = Physics.CheckSphere(groundCheck.position, groundDistance, whatIsGround);
+        MyInput();
+        CheckForWall();
+        Look();
+        WallRunInput();
+    }
+
+    /// <summary>
+    /// Find user input. Should put this in its own class but im lazy
+    /// </summary>
+    private void MyInput()
+    {
+        x = Input.GetAxisRaw("Horizontal");
+        y = Input.GetAxisRaw("Vertical");
+
+        // increase timer if player is motionless on wall. Otherwise reset timer
+        if (IsOnWall)
+            timeOnWall += Time.deltaTime;
+        else
+            timeOnWall = 0;
+
+        // Jump if jump is pressed and num of jumps are more than 0
+        if (Input.GetButtonDown("Jump") && jumpsAvaliable > 0)
+        {
+            if (IsOnWall)
+                // Send in false because player is not motionless
+                WallJump(false);
+            else
+                Jump();
+        }
+
+        // crouch if not on wall and input from left shift or mouse 4
+        crouching = (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.Mouse4)) && !IsOnWall && !playerShooting.IsGrappling;
+
+        //Crouching
+        if ((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.Mouse4)) && !IsOnWall! && !playerShooting.IsGrappling)
+            StartCrouch();
+        if ((Input.GetKeyUp(KeyCode.LeftControl) || Input.GetKeyUp(KeyCode.Mouse4)) && !IsOnWall && !playerShooting.IsGrappling)
+            StopCrouch();
+    }
+
+    /// <summary>
+    /// Shrinks player and conditionally decides if player should slide
+    /// </summary>
+    private void StartCrouch()
+    {
+        playerShooting.isAnimInProgress = true;
+        transform.localScale = crouchScale;
+        transform.position = new Vector3(transform.position.x, transform.position.y - 0.5f, transform.position.z);
+        if (rb.velocity.magnitude > 0.5f)
+            shouldSlide = true;
+
+        // Prevents guns and other such objects from shrinking
+        foreach(Transform child in gameObject.transform)
+            child.localScale = playerScale;
+        StartCoroutine(StartCrouchAnimation(0));
+    }
+
+    private IEnumerator StartCrouchAnimation(int counter)
+    {
+        yield return new WaitForSeconds(.1f / crouchGunDegree);
+        if (counter < crouchGunDegree)
+        {
+            playerShooting.currentGun.gunContainer.transform.localRotation *= Quaternion.Euler(0, 0, 1f);
+            StartCoroutine(StartCrouchAnimation(counter + 1));
+        }
+        else
+            playerShooting.isAnimInProgress = false;
+    }
+
+    /// <summary>
+    /// enlarges players to original size
+    /// </summary>
+    private void StopCrouch()
+    {
+        playerShooting.isAnimInProgress = true;
+        transform.localScale = playerScale;
+        transform.position = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z);
+
+        // Prevents guns and other such objects from expanding larger than intended
+        foreach (Transform child in gameObject.transform)
+        {
+            child.localScale = crouchScale;
+        }
+        StartCoroutine(StopCrouchAnimation());
+    }
+
+    private IEnumerator StopCrouchAnimation()
+    {
+        yield return new WaitForSeconds(.1f / crouchGunDegree);
+        if (playerShooting.currentGun.gunContainer.transform.localRotation.z > .01)
+        {
+            playerShooting.currentGun.gunContainer.transform.localRotation *= Quaternion.Euler(0, 0, -1f);
+            StartCoroutine(StopCrouchAnimation());
+        }
+        else
+            playerShooting.isAnimInProgress = false;
+    }
+
+    /// <summary>
+    /// Player movement (called by FixedUpdate)
+    /// </summary>
+    private void Movement()
+    {
+        if (jumping) return;
+        // Reset jumps if player is on ground
+        if (grounded) jumpsAvaliable = maxJumps;
+
+        //Extra gravity
+        rb.AddForce(Vector3.down * Time.deltaTime * 10);
+
+        //Find actual velocity relative to where player is looking
+        Vector2 mag = FindVelRelativeToLook(orientation, rb);
+        float xMag = mag.x, yMag = mag.y;
+
+        //Counteract sliding and sloppy movement
+        CounterMovement(x, y, mag);
+
+        //If speed is larger than maxspeed, cancel out the input so you don't go over max speed
+        if (crouching)
+        {
+            if (x > 0 && xMag > maxCrouchSpeed) x = 0;
+            if (x < 0 && xMag < -maxCrouchSpeed) x = 0;
+            if (y > 0 && yMag > maxCrouchSpeed) y = 0;
+            if (y < 0 && yMag < -maxCrouchSpeed) y = 0;
+        }
+        else if (IsOnWall)
+        {
+            if (x > 0 && xMag > maxWallRunSpeed) x = 0;
+            if (x < 0 && xMag < -maxWallRunSpeed) x = 0;
+            if (y > 0 && yMag > maxWallRunSpeed) y = 0;
+            if (y < 0 && yMag < -maxWallRunSpeed) y = 0;
+        }
+        else
+        {
+            if (x > 0 && xMag > maxBaseSpeed) x = 0;
+            if (x < 0 && xMag < -maxBaseSpeed) x = 0;
+            if (y > 0 && yMag > maxBaseSpeed) y = 0;
+            if (y < 0 && yMag < -maxBaseSpeed) y = 0;
+        }
+
+        //Some multipliers
+        float multiplier = 1f, multiplierV = 1f;
+
+        // Movement in air
+        if (!grounded)
+        {
+            multiplier = 0.5f;
+            multiplierV = 0.5f;
+
+            // Allows for bunny hopping
+            if (rb.velocity.magnitude > 0.5f && crouching)
+                shouldSlide = true;
+        }
+
+        // Slide as soon as player lands 
+        if (grounded && shouldSlide)
+        {
+            Slide();
+            return;
+        }
+
+        // Prevents player from moving while sliding
+        if (grounded && crouching) multiplierV = 0f;
+
+        // Apply forces to move player
+        // crouch walking
+        if (crouching && !isSliding)
+        {
+            rb.AddForce(orientation.transform.forward * y * crouchMoveSpeed * Time.deltaTime);
+            rb.AddForce(orientation.transform.right * x * crouchMoveSpeed * Time.deltaTime );
+        }
+        // Wall Running
+        else if (IsOnWall)
+        {
+            if(isWallForward && y > 0)
+                Climb();
+            else
+            {
+                rb.AddForce(orientation.transform.right * x * wallRunSpeed * Time.deltaTime, ForceMode.Impulse);
+                rb.AddForce(orientation.transform.forward * y * wallRunSpeed * Time.deltaTime, ForceMode.Impulse);
+            }
+        }
+        // Normal movement on ground
+        else if (!playerShooting.IsGrappling)
+        {
+            rb.AddForce(orientation.transform.forward * y * moveSpeed * Time.deltaTime * multiplier * multiplierV);
+            rb.AddForce(orientation.transform.right * x * moveSpeed * Time.deltaTime * multiplier);
+        }
+    }
+
+    /// <summary>
+    /// Player jumps from a ground object
+    /// </summary>
+    private void Jump()
+    {
+        jumpsAvaliable -= 2;
+
+        //Add jump forces
+        rb.AddForce(Vector3.up * jumpForce * 1.5f);
+        rb.AddForce(Vector3.up * jumpForce * 0.5f);
+
+        //If jumping while falling, reset y velocity.
+        Vector3 vel = rb.velocity;
+        if (rb.velocity.y < 0.5f)
+            rb.velocity = new Vector3(vel.x, 0, vel.z);
+        else if (rb.velocity.y > 0)
+            rb.velocity = new Vector3(vel.x, vel.y / 2, vel.z);
+    }
+
+    /// <summary>
+    /// Adds forces for player to slide and modifies booleans relating to sliding
+    /// Dependencies: TurnOffisSliding
+    /// </summary>
+    private void Slide()
+    {
+        shouldSlide = false;
+        isSliding = true;
+        rb.AddForce(orientation.transform.forward * slideForce);
+        StartCoroutine(TurnOffIsSliding());
+    }
+
+    /// <summary>
+    /// Allows player to climb up objects that are labeled as ground
+    /// </summary>
+    private void Climb()
+    {
+        rb.AddForce(Vector3.up * climbForce * Time.deltaTime);
+    }
+
+    /// <summary>
+    /// recursively calls itself until player velocity is less than .1 in which case
+    /// isSliding is set equal to false
+    /// </summary>
+    private IEnumerator TurnOffIsSliding()
+    {
+        yield return new WaitForSeconds(.1f);
+        if(Mathf.Abs(rb.velocity.magnitude) > .1f)
+        {
+            StartCoroutine(TurnOffIsSliding());
+        }
+        else
+        {
+            isSliding = false;
+        }
+    }
+
+    /// <summary>
+    /// Rotates player with mouse movements and rotates player on z axis when wall running
+    /// </summary>
+    private void Look()
+    {
+        float mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.fixedDeltaTime * sensMultiplier;
+        float mouseY = Input.GetAxis("Mouse Y") * sensitivity * Time.fixedDeltaTime * sensMultiplier;
+
+        //Find current look rotation
+        Vector3 rot = playerCam.transform.localRotation.eulerAngles;
+        desiredX = rot.y + mouseX;
+
+        //Rotate, and also make sure we dont over- or under-rotate.
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+
+        //Perform the rotations
+        playerCam.transform.localRotation = Quaternion.Euler(xRotation, desiredX, wallRunCameraTilt);
+        orientation.transform.localRotation = Quaternion.Euler(0, desiredX, 0);
+
+        //While Wallrunning
+        //Tilts camera in .5 second
+        if (Math.Abs(wallRunCameraTilt) < maxWallRunCameraTilt && IsOnWall && isWallRight)
+            wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
+        if (Math.Abs(wallRunCameraTilt) < maxWallRunCameraTilt && IsOnWall && isWallLeft)
+            wallRunCameraTilt -= Time.deltaTime * maxWallRunCameraTilt * 2;
+
+        //Tilts camera back again
+        if (wallRunCameraTilt > 0 && !isWallRight && !isWallLeft)
+            wallRunCameraTilt -= Time.deltaTime * maxWallRunCameraTilt * 2;
+        if (wallRunCameraTilt < 0 && !isWallRight && !isWallLeft)
+            wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
+    }
+
+    private void CounterMovement(float x, float y, Vector2 mag)
+    {
+        if (!grounded || jumping) return;
+
+        //Slow down sliding
+        if (crouching)
+        {
+            rb.AddForce(moveSpeed * Time.deltaTime * -rb.velocity.normalized * slideCounterMovement);
+            return;
+        }
+
+        //Counter movement
+        if (Math.Abs(mag.x) > threshold && Math.Abs(x) < 0.05f || (mag.x < -threshold && x > 0) || (mag.x > threshold && x < 0))
+        {
+            rb.AddForce(moveSpeed * orientation.transform.right * Time.deltaTime * -mag.x * counterMovement);
+        }
+        if (Math.Abs(mag.y) > threshold && Math.Abs(y) < 0.05f || (mag.y < -threshold && y > 0) || (mag.y > threshold && y < 0))
+        {
+            rb.AddForce(moveSpeed * orientation.transform.forward * Time.deltaTime * -mag.y * counterMovement);
+        }
+
+        //Limit diagonal running. This will also cause a full stop if sliding fast and un-crouching, so not optimal.
+        if (Mathf.Sqrt((Mathf.Pow(rb.velocity.x, 2) + Mathf.Pow(rb.velocity.z, 2))) > maxBaseSpeed)
+        {
+            float fallspeed = rb.velocity.y;
+            Vector3 n = rb.velocity.normalized * maxBaseSpeed;
+            rb.velocity = new Vector3(n.x, fallspeed, n.z);
+        }
+    }
+
+    // Wall Running
+    // ================================================================================= //
+
+    /// <summary>
+    ///  Wall run if player is on wall 
+    ///  Dependencies: CheckForWall
+    /// </summary>
+    private void WallRunInput() 
+    {
+        // Wallrun
+        if (IsOnWall) StartWallrun();
+    }
+
+    /// <summary>
+    /// turns off gravity and adds forces to have player stick to wall
+    /// </summary>
+    private void StartWallrun()
+    {
+        //Debug.Log("StartWallRun is called");
+
+        // Cancel out y velocity
+        if (rb.velocity.y != 0)
+            rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+        rb.useGravity = false;
+
+        // prevents player to be crouched on wall
+        if (crouching)
+            StopCrouch();
+
+        if(timeOnWall > maxtimeOnWall)
+        {
+            // send in true because player is motionless
+            WallJump(true);
+        }
+
+        //Make sure character sticks to wall
+        if (isWallRight)
+            rb.AddForce(orientation.right * wallrunForce / 5 * Time.deltaTime);
+        else if(isWallLeft)
+            rb.AddForce(-orientation.right * wallrunForce / 5 * Time.deltaTime);
+        else if(isWallForward)
+            rb.AddForce(orientation.forward * wallrunForce / 5 * Time.deltaTime);
+        else if (isWallBackward)
+            rb.AddForce(-orientation.forward * wallrunForce / 5 * Time.deltaTime);
+    }
+
+    /// <summary>
+    /// Turns player gravity back on 
+    /// </summary>
+    private void StopWallRun()
+    {
+        rb.useGravity = true;
+    }
+
+
+    /// <summary>
+    /// Checks if player is on wall and if so which side of the player is on the wall
+    /// </summary> 
+    private void CheckForWall() //make sure to call in void Update
+    {
+        IsOnWall = Physics.CheckSphere(wallCheck.position + Vector3.up, wallDistance, whatIsWall);
+        isWallRight = Physics.Raycast(transform.position, orientation.right, 1f, whatIsWall);
+        isWallLeft = Physics.Raycast(transform.position, -orientation.right, 1f, whatIsWall);
+        isWallForward = Physics.Raycast(transform.position, orientation.forward, 1f, whatIsWall);
+        isWallBackward = Physics.Raycast(transform.position, -orientation.forward, 1f, whatIsWall);
+
+        //leave wall run
+        if (!IsOnWall && !playerShooting.IsGrappling) StopWallRun();
+        //reset double jump (if you have one :D)
+        if (isWallLeft || isWallRight ) jumpsAvaliable = maxJumps;
+
+        // Switch hand gun is in (Prevents gun from phasing into wall)
+        if (!IsOnWall && gunPosition.localPosition.x < rightHandPosition)
+        {
+            currentHandPosition = Time.deltaTime * rightHandPosition * 14;
+            gunPosition.localPosition -= Vector3.right * currentHandPosition;
+        }
+        else if (isWallLeft && gunPosition.localPosition.x < rightHandPosition)
+        {
+            currentHandPosition = Time.deltaTime * rightHandPosition * 14;
+            gunPosition.localPosition -= Vector3.right * currentHandPosition;
+
+        }
+        else if (isWallRight && gunPosition.localPosition.x > leftHandPosition)
+        {
+            currentHandPosition = Time.deltaTime * leftHandPosition * 4;
+            gunPosition.localPosition += Vector3.right * currentHandPosition;
+        }
+    }
+
+
+    /// <summary>
+    /// Player jumps from a wall
+    /// </summary>
+    /// <param name="motionless"> boolean: Tells function whether the player is motionless of not </param>
+    private void WallJump(bool motionless)
+    {
+        float forceMultiplier = 0.05f;
+        RaycastHit hit;
+        Vector3 direction;
+
+        jumpsAvaliable -= 2;
+
+        if(!motionless)
+        {
+            // Sets multipler for non-motionless wall jump
+            forceMultiplier = 1.5f;
+        }
+
+        // Jumps off wall (opposite direction relative to wall)
+        // If wall to left
+        if (Physics.Raycast(transform.position, -orientation.right, out hit, 1f))
+        {
+            direction = -(hit.point - transform.position).normalized;
+            rb.AddForce(direction * jumpForce * forceMultiplier);
+        }
+        // If wall to right
+        else if (Physics.Raycast(transform.position, orientation.right, out hit, 1f))
+        {
+            direction = -(hit.point - transform.position).normalized;
+            rb.AddForce(direction * jumpForce * forceMultiplier);
+        }
+        // If wall in front
+        else if (Physics.Raycast(transform.position, orientation.forward, out hit, 1f))
+        {
+            direction = -(hit.point - transform.position).normalized;
+            rb.AddForce(direction * jumpForce * forceMultiplier);
+        }
+        // If wall behind
+        else if (Physics.Raycast(transform.position, -orientation.forward, out hit, 1f))
+        {
+            direction = -(hit.point - transform.position).normalized;
+            rb.AddForce(direction * jumpForce * forceMultiplier);
+        }
+
+        if (!motionless)
+            //Add vertical jump forces
+            StartCoroutine(WallJumpHelper());
+
+    }
+
+    private IEnumerator WallJumpHelper()
+    {
+        yield return new WaitForSeconds(.1f);
+        rb.AddForce(Vector3.up * jumpForce * 1.5f);
+    }
+
+    // End of wall running methods
+    // ================================================================================= //
+}

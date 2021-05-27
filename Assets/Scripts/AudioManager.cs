@@ -1,0 +1,94 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Audio;
+
+public class AudioManager : MonoBehaviour
+{
+    [System.Serializable]
+    public class Sound
+    {
+        public string name;
+        public AudioClip clip;
+
+        [Range(0f ,1f)]
+        public float volume;
+        [Range(.1f, 3f)]
+        public float pitch;
+
+        public bool looping;
+
+        [HideInInspector]
+        public AudioSource source;
+    }
+
+    public Sound[] sounds;
+    public static AudioManager instance;
+    public GameObject enemyPefab;
+
+    private void Awake()
+    {
+        if (instance == null)
+            instance = this;
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+
+        DontDestroyOnLoad(gameObject);
+
+        foreach(Sound s in sounds)
+        {
+            s.source = gameObject.AddComponent<AudioSource>();
+            s.source.clip = s.clip;
+
+            if(s.name.Substring(0,3).Equals("Gun"))
+                s.source.volume = PlayerPrefs.GetFloat("SoundEffectsVolume");
+            else
+                s.source.volume = PlayerPrefs.GetFloat("MusicVolume");
+
+            
+            s.source.pitch = s.pitch;
+            s.source.loop = s.looping;
+        }
+    }
+
+    private void Start()
+    {
+        Play("BackgroundMusic");
+    }
+
+    public void Play(string name)
+    {
+        Sound s = Array.Find(sounds, sound => sound.name == name);
+        if (s == null)
+            return;
+        s.source.Play();
+    }
+
+    public void SetMusicVolume()
+    {
+        foreach(Sound s in sounds)
+        {
+            if (!(s.name.Substring(0, 3).Equals("Gun")))
+                s.source.volume = PlayerPrefs.GetFloat("MusicVolume");
+        }
+    }    
+    
+    public void SetSoundEffectVolume()
+    {
+        foreach (Sound s in sounds)
+        {
+            if ( s.name.Substring(0, 3).Equals("Gun") )
+                s.source.volume = PlayerPrefs.GetFloat("SoundEffectsVolume");
+        }
+
+        enemyPefab.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("SoundEffectsVolume");
+        foreach(GameObject enemy in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            enemy.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("SoundEffectsVolume");
+        }
+    }
+}
