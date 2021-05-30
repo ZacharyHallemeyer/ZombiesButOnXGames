@@ -7,6 +7,7 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
     // Prefabs
     public GameObject buildingPrefab;
     public GameObject groundPrefab;
+    public GameObject wallPrefab;
     public GameObject roofPrefab;
     public GameObject groundLightPrefab;
     public GameObject mysteryBoxPrefab;
@@ -16,16 +17,23 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
     public GameObject wallLightBackwardPrefab;
     public GameObject sunPrefab;
 
+    // Materials 
+    public Material[] sunMaterials;
+
     // Container (ground, outside walls, roof)
     public int groundMinXSize, groundMaxXSize, groundMinZSize, groundMaxZSize;
     public int groundXSize, groundZSize, startOfGroundX, endOfGroundX, startOfGroundZ, endOfGroundZ;
     public int outsideWallsMinYSize, outsideWallsMaxYSize, outsideWallSize;
 
     // Buidlings
-    public float buildingMinX, buildingMaxX, buildingXSize, buildingXCoord;
-    public float buildingMinY, buildingMaxY, buildingYSize, buildingYCoord;
-    public float buildingMinZ, buildingMaxZ, buildingZSize, buildingZCoord;
+    public float buildingMinX, buildingMaxX;
+    public float buildingMinY, buildingMaxY;
+    public float buildingMinZ, buildingMaxZ;
+    public float spaceBetweenBuildingsMultiplier = 1.2f;
     public int buildingMinCount, buildingMaxCount, buildingCount;
+
+    // Perlin Noise
+    public int perlinOffsetMin, perlinOffsetMax, xOffset, yOffset, scale;
 
     // Lights
     public int groundLightMinCount, groundLightMaxCount;
@@ -58,16 +66,16 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
 
         // Spawn outside walls (4)
         outsideWallSize = Random.Range(outsideWallsMinYSize, outsideWallsMaxYSize);
-        GameObject outsideWall = Instantiate(buildingPrefab, new Vector3(startOfGroundX, outsideWallSize / 2, 0), transform.rotation);
+        GameObject outsideWall = Instantiate(wallPrefab, new Vector3(startOfGroundX, outsideWallSize / 2, 0), transform.rotation);
         outsideWall.transform.localScale = new Vector3(1, outsideWallSize, groundZSize);
 
-        outsideWall = Instantiate(buildingPrefab, new Vector3(endOfGroundX, outsideWallSize / 2, 0), transform.rotation);
+        outsideWall = Instantiate(wallPrefab, new Vector3(endOfGroundX, outsideWallSize / 2, 0), transform.rotation);
         outsideWall.transform.localScale = new Vector3(1, outsideWallSize, groundZSize);
 
-        outsideWall = Instantiate(buildingPrefab, new Vector3(0, outsideWallSize / 2, startOfGroundZ), transform.rotation);
+        outsideWall = Instantiate(wallPrefab, new Vector3(0, outsideWallSize / 2, startOfGroundZ), transform.rotation);
         outsideWall.transform.localScale = new Vector3(groundXSize, outsideWallSize, 1);
 
-        outsideWall = Instantiate(buildingPrefab, new Vector3(0, outsideWallSize / 2, endOfGroundZ), transform.rotation);
+        outsideWall = Instantiate(wallPrefab, new Vector3(0, outsideWallSize / 2, endOfGroundZ), transform.rotation);
         outsideWall.transform.localScale = new Vector3(groundXSize, outsideWallSize, 1);
 
 
@@ -78,6 +86,8 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
 
     private void SpawnBuildings()
     {
+        xOffset = Random.Range(perlinOffsetMin, perlinOffsetMax);
+        yOffset = Random.Range(perlinOffsetMin, perlinOffsetMax);
         buildingCount = Random.Range(buildingMinCount, buildingMaxCount);
         StartCoroutine(SpawnBuilding(0));
     }
@@ -85,8 +95,9 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
     private IEnumerator SpawnBuilding(int counter)
     {
         int errorCatchCounter;
+        float xCoord, yCoord, zCoord, xSize, ySize, zSize;
         GameObject currentBuilding;
-        Vector3 buildingCenter = Vector3.zero, buildingSize = Vector3.zero;
+        Vector3 buildingCenter = Vector3.zero;
 
         if (counter >= buildingCount)
             yield break;
@@ -102,25 +113,24 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
                 buildingCount = counter;
                 yield break;
             }
-            buildingXSize = Random.Range(buildingMinX, buildingMaxX);
-            buildingYSize = Random.Range(buildingMinY, buildingMaxY);
-            buildingZSize = Random.Range(buildingMinZ, buildingMaxZ);
-            buildingSize = new Vector3(buildingXSize, buildingYSize, buildingZSize);
+            xSize = Random.Range(buildingMinX, buildingMaxX);
+            zSize = Random.Range(buildingMinZ, buildingMaxZ);
+            xCoord = Random.Range(startOfGroundX, endOfGroundX);
+            zCoord = Random.Range(startOfGroundZ, endOfGroundZ);
 
-            buildingXCoord = Random.Range(startOfGroundX, endOfGroundX);
-            buildingYCoord = buildingYSize / 2 + .7f;
-            buildingZCoord = Random.Range(startOfGroundZ, endOfGroundZ);
-            buildingCenter = new Vector3(buildingXCoord, buildingYCoord, buildingZCoord);
-        } while (CheckIfBuilding(buildingCenter, buildingSize));
+            ySize = GeneratePerlinNoise(xCoord, zCoord) * buildingMaxY;
+            yCoord = ySize / 2 + .7f;
+            buildingCenter = new Vector3(xCoord, yCoord, zCoord);
+        } while (CheckIfBuilding(buildingCenter, new Vector3(spaceBetweenBuildingsMultiplier * xSize, yCoord, spaceBetweenBuildingsMultiplier * zSize)));
 
         currentBuilding = Instantiate(buildingPrefab, buildingCenter, Quaternion.Euler(0, 0, 0));
-        currentBuilding.transform.localScale = buildingSize;
+        currentBuilding.transform.localScale = new Vector3(xSize, ySize, zSize);
 
         // Spawn one mystery box
         if(counter == 0)
         {
             Instantiate(mysteryBoxPrefab,
-                        new Vector3(buildingXCoord, buildingYSize + 1.5f, buildingZCoord),
+                        new Vector3(xCoord, ySize + 1.5f, zCoord),
                         mysteryBoxPrefab.transform.rotation);
         }
 
@@ -132,6 +142,14 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
         return Physics.CheckBox(center, size/2, Quaternion.Euler(0, 0, 0));
     }
 
+    private float GeneratePerlinNoise(float x, float y)
+    {
+        float xCoord = (float) x / groundXSize * scale + xOffset;
+        float yCoord = (float) y / groundZSize * scale + yOffset;
+
+        return Mathf.Clamp(Mathf.PerlinNoise(xCoord, yCoord), 0, 1);
+    }
+
     private void SpawnLights()
     {
         GameObject light;
@@ -139,15 +157,17 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
         int wallLightCount = Random.Range(perWallLightMinCount, perWallLightMaxCount);
         int xCoord, zCoord, yCoord;
 
+        xCoord = startOfGroundX;
         // Ground lights
         for (int i = 0; i < groundLightCount; i++)
         {
-            //xCoord += (groundXSize * 2  / groundLightCount) + Random.Range(10,spaceBetweenWallAndLight);
-            xCoord = Random.Range(startOfGroundX + spaceBetweenWallAndLight, endOfGroundX - spaceBetweenWallAndLight);
+            xCoord += (groundXSize / groundLightCount);
+            //xCoord = Random.Range(startOfGroundX + spaceBetweenWallAndLight, endOfGroundX - spaceBetweenWallAndLight);
             yCoord = Random.Range(outsideWallSize / 2, 3 * outsideWallSize / 4);
             zCoord = Random.Range(startOfGroundZ + spaceBetweenWallAndLight, endOfGroundZ - spaceBetweenWallAndLight);
             light = Instantiate(groundLightPrefab, new Vector3(xCoord, yCoord, zCoord), groundLightPrefab.transform.rotation);
             light.GetComponent<Light>().color = RandomColor();
+            light.GetComponent<Light>().range = yCoord + 100;
         }
         zCoord = 0;
         // Wall lights right
@@ -158,6 +178,7 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
             yCoord = Random.Range(outsideWallSize / 2, 3 * outsideWallSize / 4);
             light = Instantiate(wallLightRightPrefab, new Vector3(xCoord, yCoord, zCoord), wallLightRightPrefab.transform.rotation);
             light.GetComponent<Light>().color = RandomColor();
+            //light.GetComponent<Light>().range = xCoord + 100;
         }
         // Wall lights left
         for (int i = 0; i < wallLightCount; i++)
@@ -190,6 +211,7 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
         }
     }
 
+    
     private void SpawnSuns()
     {
         GameObject currentSun;
@@ -208,6 +230,7 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
             } while (CheckIfSun(new Vector3(xCoord, yCoord, zCoord), sunRadius)) ;
             currentSun = Instantiate(sunPrefab, new Vector3(xCoord, yCoord, zCoord), transform.rotation);
             currentSun.transform.localScale *= sunRadius;
+            currentSun.GetComponent<Renderer>().material = sunMaterials[Random.Range(0, sunMaterials.Length)];
         }
     }
 

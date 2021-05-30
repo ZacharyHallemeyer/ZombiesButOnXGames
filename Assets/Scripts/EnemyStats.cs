@@ -15,6 +15,10 @@ public class EnemyStats : MonoBehaviour
     public float MaxHealth { set; get; } = 50f;
     public float health;
 
+    // 0D00FF 8400FF 8D0043 00FF98
+    public Color[] colors;
+    public Color baseColor, damagedColor;
+
     // Scripts
     private PlayerStats playerStats;
 
@@ -22,6 +26,15 @@ public class EnemyStats : MonoBehaviour
     {
         health = MaxHealth;
         playerStats = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerStats>();
+
+        // Change size
+        transform.localScale = new Vector3(transform.localScale.x,
+                                           transform.localScale.y * Random.Range(.5f, 1.5f),
+                                           transform.localScale.z);
+
+        // Change colors
+        baseColor = colors[Random.Range(0, colors.Length)];
+        meshRenderer.material.color = baseColor;
     }
 
     /// <summary>
@@ -32,11 +45,11 @@ public class EnemyStats : MonoBehaviour
     /// <param name="damage">variable to subtract from emeny health</param>
     public void TakeDamage(float damage)
     {
-        playerStats.CurrentPoints += (int) damage;
+        playerStats.CurrentPoints += (int)damage;
         playerStats.ChangeInPointValue();
         health -= damage;
 
-        if(!showDamageActive)
+        if (!showDamageActive)
             StartCoroutine(ShowDamage());
 
         if (health <= 0)
@@ -53,9 +66,9 @@ public class EnemyStats : MonoBehaviour
     private IEnumerator ShowDamage()
     {
         showDamageActive = true;
-        meshRenderer.material = showDamageMaterial;
+        meshRenderer.material.color = damagedColor;
         yield return new WaitForSeconds(showDamageDuration);
-        meshRenderer.material = normalMaterial;
+        meshRenderer.material.color = baseColor;
         showDamageActive = false;
     }
 }

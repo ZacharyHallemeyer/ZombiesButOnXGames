@@ -61,7 +61,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 62f7cd767e5cd5a4ba01af9db033da5f, type: 2}
+  - {fileID: 2100000, guid: 11ad09a98199bc144b92abac0870c5eb, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -94,8 +94,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1, y: 1.7908983, z: 1}
+  m_Center: {x: 0, y: 0.3954494, z: 0}
 --- !u!114 &5589261945279410589
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -109,6 +109,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerShooting: {fileID: 0}
+  playerStats: {fileID: 0}
   text: {fileID: 0}
   gunPrefabArray:
   - {fileID: 5903996498010981783, guid: 6af3dec1371cf9a41ae0867e51b55342, type: 3}

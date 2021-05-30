@@ -7,6 +7,7 @@ public class PlayerShooting : MonoBehaviour
     // General Variables
     public Transform cam, player;
     public PlayerStats playerStats;
+    public PlayerMovement playerMovement;
     private AudioManager audioManager;
 
     // Grappling Variables ==================
@@ -25,14 +26,22 @@ public class PlayerShooting : MonoBehaviour
     // Numerical variables
     private float maxGrappleDistance = 200f, maxGrappleTime = 3f, grappleRecoveryIncrement = .01f;
     private float timeLeftToGrapple;
+
     public bool IsGrappling { get; private set; }
     public Vector3 GrapplePoint { get; private set; }
 
     // Gun Variables =======================
     public float timeSinceLastShoot = 5f;
-    public int reloadAnimationCounter = 0;
-    public bool isAnimInProgress;
     public int scrollingCounter = 0;
+
+    // Animation variables
+    public int animationCounter = 0;
+    public int singleFireRecoilDegree = 10;
+    public bool isAnimInProgress;
+    public bool isReloading;
+    public bool isChangingCurrentWeapon;
+    public bool isPickingUpWeapon;
+    public bool isSingleFireRecoil;
 
     // Arrays
     public string[] gunNames;
@@ -58,19 +67,13 @@ public class PlayerShooting : MonoBehaviour
     // Gun UI
     public AmmoUIScript ammoUI;
 
-    // MysteryBox
-    private MysteryBox mysteryBox;
-    public LayerMask whatIsInteractable;
-    public bool shouldInteract;
-
     // Testing Variables
     public GameObject collisionObject;
     public float timer;
 
-    private void Awake()
+    private void Start()
     {
         audioManager = FindObjectOfType<AudioManager>();
-        mysteryBox = FindObjectOfType<MysteryBox>();
 
         // Set up guns
         playerStats.SetGunInformation();
@@ -83,8 +86,6 @@ public class PlayerShooting : MonoBehaviour
             index++;
         }
 
-        //currentGun = playerStats.allGunInformation["GunAR"];
-        //secondaryGun = playerStats.allGunInformation["GunSMG"];        
         do
         {
             currentGun = playerStats.allGunInformation[gunNames[Random.Range(0, gunNames.Length)]];
@@ -115,17 +116,17 @@ public class PlayerShooting : MonoBehaviour
         }
 
         // Handle gun shooting
-        if(!isAnimInProgress)
+        if (!isAnimInProgress)
         {
             // Switching between primary and secondary by using mouse scroll wheel or '1' on keyboard
-            if(Input.GetKeyDown(KeyCode.Alpha1))
+            if (Input.GetKeyDown(KeyCode.Alpha1))
             {
                 ChangeCurrentWeapon();
-            }    
-            else if(Input.mouseScrollDelta.y != 0)
+            }
+            else if (Input.mouseScrollDelta.y != 0)
             {
                 scrollingCounter++;
-                if(scrollingCounter > 1)
+                if (scrollingCounter > 1)
                 {
                     scrollingCounter = 0;
                     ChangeCurrentWeapon();
@@ -135,7 +136,7 @@ public class PlayerShooting : MonoBehaviour
 
             // Shoot
             if (Input.GetKeyDown(KeyCode.Mouse0) && currentGun.currentAmmo > 0)
-            { 
+            {
                 if (currentGun.isAutomatic)
                     InvokeRepeating("BaseShoot", 0f, currentGun.fireRate);
                 else
@@ -148,24 +149,17 @@ public class PlayerShooting : MonoBehaviour
             }
             else if (Input.GetKeyUp(KeyCode.Mouse0))
             {
-                if(currentGun.isAutomatic)
+                if (currentGun.isAutomatic)
                     CancelInvoke("BaseShoot");
                 CorrectGunPosition();
             }
             // Reload
-            else if(currentGun.currentAmmo < currentGun.magSize && Input.GetKeyDown(KeyCode.R) && currentGun.reserveAmmo > 0)
+            else if (currentGun.currentAmmo < currentGun.magSize && Input.GetKeyDown(KeyCode.R) && currentGun.reserveAmmo > 0)
             {
                 isAnimInProgress = true;
                 audioManager.Play("GunReload");
-                StartCoroutine(Reload());
+                InvokeRepeating("Reload", 0, currentGun.reloadTime / 360f);
             }
-
-            if (CheckIfMysterBoxInFront())
-            {
-                shouldInteract = Input.GetKeyDown(KeyCode.E);
-                HandleMysteryBox();
-            }
-
         }
     }
 
@@ -178,6 +172,7 @@ public class PlayerShooting : MonoBehaviour
             ContinueGrapple();
         }
     }
+
 
     /// <summary>
     /// Turns off gravity, creates joints for grapple
@@ -192,6 +187,7 @@ public class PlayerShooting : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, maxGrappleDistance, whatIsGrapple ))
         //if (Physics.Raycast(cam.position, cam.forward, out RaycastHit hit, maxGrappleDistance) && !hit.collider.CompareTag("Player"))
         {
+            playerMovement.StopCrouch();
             // Turn off grapple recovery
             if (grappleRecovery != null)
                 StopCoroutine(grappleRecovery);
@@ -302,7 +298,7 @@ public class PlayerShooting : MonoBehaviour
             if(currentGun.reserveAmmo > 0)
             {
                 audioManager.Play("GunReload");
-                StartCoroutine(Reload());
+                InvokeRepeating("Reload", 0, currentGun.reloadTime / 360f);
             }
             CorrectGunPosition();
             if(currentGun.isAutomatic)
@@ -343,7 +339,7 @@ public class PlayerShooting : MonoBehaviour
             if (currentGun.reserveAmmo > 0)
             {
                 audioManager.Play("GunReload");
-                StartCoroutine(Reload());
+                InvokeRepeating("Reload", 0, currentGun.reloadTime / 360f);
             }
             CorrectGunPosition();
             if (currentGun.isAutomatic)
@@ -374,29 +370,21 @@ public class PlayerShooting : MonoBehaviour
 
     }
 
-    /// <summary>
-    /// Reload current gun and plays a reload animation
-    /// </summary>
-    /// <returns></returns>
-    private IEnumerator Reload()
+    private void Reload()
     {
         CancelInvoke("BaseShoot");
-        yield return new WaitForSeconds(currentGun.reloadTime / 360f);
 
         // Rotate gun on x axis
         gunContainer.localRotation = Quaternion.Euler(1f, 0, 0) * gunContainer.localRotation;
-        reloadAnimationCounter++;
+        animationCounter++;
 
         // if gun hasnt rotated 360 degress then rotate one more degree
-        if ( reloadAnimationCounter < 360)
-            StartCoroutine(Reload());
-        // else reset variables and 'reload' gun
-        else
+        if(animationCounter >= 360)
         {
             // Reset reload variables
             gunContainer.localRotation = new Quaternion(0f, 0f, 0f, 0f);
             isAnimInProgress = false;
-            reloadAnimationCounter = 0;
+            animationCounter = 0;
             if (currentGun.reserveAmmo > currentGun.magSize)
             {
                 currentGun.reserveAmmo += -currentGun.magSize + currentGun.currentAmmo;
@@ -404,18 +392,20 @@ public class PlayerShooting : MonoBehaviour
             }
             else
             {
-                if(currentGun.magSize - currentGun.currentAmmo <= currentGun.reserveAmmo)
+                if (currentGun.magSize - currentGun.currentAmmo <= currentGun.reserveAmmo)
                 {
+                    currentGun.reserveAmmo -= currentGun.magSize - currentGun.currentAmmo;
                     currentGun.currentAmmo = currentGun.magSize;
-                    currentGun.reserveAmmo = currentGun.magSize - currentGun.currentAmmo;
                 }
                 else
                 {
                     currentGun.currentAmmo += currentGun.reserveAmmo;
                     currentGun.reserveAmmo = 0;
                 }
+
             }
             ammoUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+            CancelInvoke("Reload");
         }
     }
 
@@ -425,32 +415,36 @@ public class PlayerShooting : MonoBehaviour
     /// </summary>
     private void ChangeCurrentWeapon()
     {
+        CancelInvoke("BaseShoot");
         isAnimInProgress = true;
         PlayerStats.GunInformation temp = currentGun;
         currentGun = secondaryGun;
         secondaryGun = temp;
         ammoUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
-        StartCoroutine(ChangeCurrentWeaponAnimation(0));
+        InvokeRepeating("ChangeCurrentGunAnimation", 0, 1f / 180f);
     }
 
-    /// <summary>
-    /// plays animation where primary gun is lifted over head and seconday gun comes down 
-    /// </summary>
-    /// <param name="counter">current count of how many times function has been called</param>
-    private IEnumerator ChangeCurrentWeaponAnimation(int counter)
+    private void ChangeCurrentGunAnimation()
     {
-        yield return new WaitForSeconds(1f / 180f);
-        if (counter < 180)
+        animationCounter++;
+        if (animationCounter < 180)
         {
             // disable primary gun and enable new primary gun
-            if(counter == 90)
+            if (animationCounter == 90)
             {
                 secondaryGun.gunContainer.SetActive(false);
                 currentGun.gunContainer.SetActive(true);
+                // fix gun rotation if player is crouching to prevent secondary gun having a crouch angled rotation while
+                // player is not crouching
+                if(playerMovement.crouching)
+                {
+                    playerMovement.InvokeRepeating("StartCrouchAnimation", 0, .1f / playerMovement.crouchGunDegree);
+                    secondaryGun.gunContainer.transform.localRotation = Quaternion.Euler(0, 0, 0);
+                }
             }
 
             // Rotate gun upwards if counter is less han 90
-            if (counter < 90)
+            if (animationCounter < 90)
             {
                 gunContainer.localRotation = Quaternion.Euler(-1f, 0, 0) * gunContainer.localRotation;
             }
@@ -459,20 +453,22 @@ public class PlayerShooting : MonoBehaviour
             {
                 gunContainer.localRotation = Quaternion.Euler(1f, 0, 0) * gunContainer.localRotation;
             }
-            // Start over
-            StartCoroutine(ChangeCurrentWeaponAnimation(counter + 1));
         }
         else
         {
             // animation finished so reset variables
             isAnimInProgress = false;
             gunContainer.localRotation = new Quaternion(0f, 0f, 0f, 0f);
+            animationCounter = 0;
+            CancelInvoke("ChangeCurrentGunAnimation");
         }
     }
 
-    private void PickUpWeapon(string gunName)
+    public void PickUpWeapon(string gunName)
     {
         isAnimInProgress = true;
+        // Reset reserve ammo for current weapon
+        currentGun.reserveAmmo = currentGun.ammoIncrementor;
         StartCoroutine(PickWeapnAnimation(0, gunName));
     }
 
@@ -527,47 +523,42 @@ public class PlayerShooting : MonoBehaviour
         else
         {
             isAnimInProgress = true;
-            StartCoroutine(SingleFireRecoil(0, 10));
+            InvokeRepeating("SingleFireRecoil", 0f, currentGun.fireRate / (singleFireRecoilDegree * 2));
+            //StartCoroutine(SingleFireRecoil(0, 10));
         }
     }
 
-    /// <summary>
-    /// Flips gun upwards to a 20 degree angle then brings it back to 0 degrees
-    /// </summary>
-    /// <param name="counter">current count of how many times function has been called</param>
-    /// <param name="degree">The x degree gun should be rotated to</param>
-    private IEnumerator SingleFireRecoil(int counter, int degree)
+    private void SingleFireRecoil()
     {
-        yield return new WaitForSeconds(currentGun.fireRate / ( degree * 2 ));
-        timer += currentGun.fireRate / (degree * 2);
         // Prevents reload animation and recoil animation from happening at the same time
-        if (currentGun.currentAmmo <= 0 )
+        if (currentGun.currentAmmo <= 0)
         {
-            yield break;
+            CancelInvoke("SingleFireRecoil");
         }
-        if (counter < (degree * 2))
+        animationCounter++;
+        if (animationCounter < (singleFireRecoilDegree * 2))
         {
             // Rotate upward if count is less than 20
-            if (counter <= degree / 2)
+            if (animationCounter <= singleFireRecoilDegree / 2)
             {
                 gunContainer.localRotation = Quaternion.Euler(-2f, 0, 0) * gunContainer.localRotation;
             }
             // otherwise rotate downward 
             else
             {
-                if( !(gunContainer.localRotation.eulerAngles.x  < .1f) )
+                if (!(gunContainer.localRotation.eulerAngles.x < .1f))
                     gunContainer.localRotation = Quaternion.Euler(1f, 0, 0) * gunContainer.localRotation;
             }
-            // Start over
-            StartCoroutine(SingleFireRecoil(counter + 1, degree));
         }
         else
         {
             // Animation finished so reset variables
             gunContainer.localRotation = new Quaternion(0f, 0f, 0f, 0f);
             isAnimInProgress = false;
+            animationCounter = 0;
+            CancelInvoke("SingleFireRecoil");
         }
-    }
+    }    
     
     /// <summary>
     /// Makes gun local position to be equal to (0, 0, 0)
@@ -575,36 +566,5 @@ public class PlayerShooting : MonoBehaviour
     private void CorrectGunPosition()
     {
         gunPosition.localPosition = Vector3.zero;
-    }
-
-    public bool CheckIfMysterBoxInFront()
-    {
-        //Debug.Log("Check mysterbox called");
-        if (Physics.Raycast(transform.position, cam.forward, 10f, whatIsInteractable))
-            return true;
-        return false;
-    }
-
-    private void HandleMysteryBox()
-    {
-        //Debug.Log("Handle Mystery Box is called");
-        if (mysteryBox == null)
-            mysteryBox = FindObjectOfType<MysteryBox>();
-
-        if(mysteryBox.IsInteractable)
-        {
-            mysteryBox.ShowUI();
-            if (shouldInteract)
-                if(mysteryBox.IsWeaponSpawned)
-                {
-                    PickUpWeapon(mysteryBox.DestroyGun()) ; 
-                }
-                else if (playerStats.CurrentPoints > mysteryBox.MysteryBoxPrice)
-                {
-                    playerStats.CurrentPoints -= mysteryBox.MysteryBoxPrice;
-                    playerStats.ChangeInPointValue();
-                    mysteryBox.SpawnRandomWeapon();
-                }
-        }   
     }
 }

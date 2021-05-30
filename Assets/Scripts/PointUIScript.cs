@@ -19,16 +19,15 @@ public class PointUIScript : MonoBehaviour
 
     public void ChangeDisappearingText(int points)
     {
-        if(points > 0)
+        if(points - oldPoint > 0)
             disappearingText.text = "+" + (points - oldPoint);
         else
             disappearingText.text = (points - oldPoint).ToString();
         oldPoint = points;
 
         if(hideText != null)
-        {
             StopCoroutine(hideText);
-        }
+
         hideText = StartCoroutine(HideText());
     }
 

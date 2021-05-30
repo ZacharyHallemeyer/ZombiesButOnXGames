@@ -14,12 +14,15 @@ public class EnemyMovement : MonoBehaviour
     public float maxSpeed = 40f;
     
     public float MoveSpeed { get; set; } = 2000;
+    public int randomjumpMultiplier = 5;
 
     public float groundedDistance = .75f;
     public float timeMotionless = 0f;
     public float maxTimeMotionless = 2f;
-    private float maxJumpVelocity= 50f, minJumpVelocity = 5f;
     public float range = 20f;
+    public float threshold = .5f;
+    public float jumpMultiplier = 1.5f;
+    public float minJumpVelocity = 7f;
     public bool grounded, jumpActive;
     public LayerMask whatIsGround;
     public LayerMask whatIsObstacle;
@@ -31,6 +34,7 @@ public class EnemyMovement : MonoBehaviour
     private void Awake()
     {
         player = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        InvokeRepeating("RandomMovement", Random.Range(.1f, 10f), 2.5f);
     }
 
     void Update()
@@ -68,48 +72,84 @@ public class EnemyMovement : MonoBehaviour
         // then jump over it
         if (IsObstacle())
         {
-            if (Physics.Raycast(transform.position, transform.forward, 5f))
-                Knockback(0);
-            if (grounded && !jumpActive)
-                Jump( 1.3f * CaclulateJumpVelocity(hit.collider.transform.position.y * hit.collider.transform.localScale.y
-                                                  - transform.position.y * transform.localScale.y));
-            return;
+            //Debug.Log("There is an obstacle");
+            //if (Physics.Raycast(transform.position, transform.forward, 5f))
+            //    Knockback(0);
+            if (!jumpActive && IsPlayerInCurrentDirection(0f) && rb.velocity.y < 10f)
+                Jump( jumpMultiplier * CaclulateJumpVelocity( FindRelativeHeight(hit.transform)));
         }   
-        direction = player.position - transform.position;
+        //direction = (player.position - transform.position);
+        direction = (new Vector3(player.position.x, 0, player.position.z) 
+                     - new Vector3(transform.position.x, 0, transform.position.z));
 
 
         // Player is above enemy so jump up to them
-        if (player.position.y - transform.position.y > 1f && !jumpActive && InRange())
-            StartCoroutine(WaitAndJump());
+        if (player.position.y - transform.position.y > 1f && !jumpActive
+            && InRange() && IsPlayerInCurrentDirection(threshold)
+            && rb.velocity.y < 10f)
+            if (Random.Range(0, 2) == 0)
+                StartCoroutine(WaitAndJump());
+            else
+                Jump(jumpMultiplier * CaclulateJumpVelocity(FindRelativeHeight(player)));
 
         // Check if enemy is going faster than max speed return so enemy does not recieve more force
-        if ( new Vector2(rb.velocity.x, rb.velocity.y).magnitude  > maxSpeed )
+        if ( new Vector3(rb.velocity.x, 0, rb.velocity.z).magnitude  > maxSpeed )
             return;
 
         // Add force in direction of player
         rb.AddForce(direction.normalized * MoveSpeed * Time.deltaTime);
 
         // Random movement on random chance to add less predictable patterns to enemy movement
-        if (Random.Range(0,50) == 0)
+        if (Random.Range(0,100) == 0)
         {
-            if (grounded && !jumpActive)
-                Jump( Random.Range(10, 20) );
+            if (grounded)
+                Jump( Random.Range(5, 15) );
         }
-        if(Random.Range(0,50) == 0)
+        if(Random.Range(0,100) == 0)
         {
             rb.AddForce(new Vector3(Random.Range(-10f , 10f), 0, 0) * MoveSpeed * Time.deltaTime);
         }
+    }
+
+    private void RandomMovement()
+    {
+        if (!InRange())
+            return;
+        if(Random.Range(0, 5) == 0)
+        {
+            if (grounded)
+                // Twice as high as current player position
+                Jump( CaclulateJumpVelocity( (player.position.y + player.localScale.y / 2 
+                                             - transform.position.y + transform.localScale.y / 2) * randomjumpMultiplier));
+        }
+    }
+
+    /// <summary>
+    /// Returns true is this gameobject is traveling toward player
+    /// </summary>
+    /// <param name="threshold">the closer to 1 threshold becomes the more accurate the function becomes</param>
+    private bool IsPlayerInCurrentDirection(float threshold)
+    {
+        //Debug.Log(Vector3.Dot(transform.forward.normalized, rb.velocity.normalized));
+        if(Vector3.Dot(transform.forward.normalized, rb.velocity.normalized) > threshold)
+            return true;
+        return false;
+    }
+
+    private float FindRelativeHeight(Transform target)
+    {
+        return target.position.y + target.localScale.y/2 - transform.position.y + transform.localScale.y/2;
     }
 
     /// <summary>
     /// Applies force backwards
     /// </summary>
     /// <param name="knockbackForce"></param>
-    private void Knockback(float knockbackForce)
+    private void Knockback(float knockbackForce, GameObject collider)
     {
         if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, 1f))
         {
-            rb.velocity = Vector3.zero;
+            rb.velocity = collider.GetComponent<Rigidbody>().velocity;
             Vector3 direction = -(hit.point - transform.position).normalized;
             rb.AddForce(direction * knockbackForce);
         }
@@ -135,11 +175,9 @@ public class EnemyMovement : MonoBehaviour
     /// </summary>
     private bool IsObstacle()
     {
-        //if (player.transform.position.y - transform.position.y < -1f)
-        //    return false;
-
+        //Debug.Log("Obstacle function is called");
         if (Physics.Raycast(obstacleCheck.position, player.position - obstacleCheck.position, out hit,
-            Vector3.Distance(transform.position, obstacleCheck.position), whatIsObstacle))
+            Vector3.Distance(obstacleCheck.position, player.position), whatIsObstacle))
         {
             if (player.transform.position.y - transform.position.y < -1f)
                 if (hit.collider.transform.position.y * hit.collider.transform.localScale.y
@@ -157,9 +195,9 @@ public class EnemyMovement : MonoBehaviour
     /// </summary>
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.CompareTag("Player"))
+        if(collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Enemy"))
         {
-            Knockback(knockbackForce);
+            Knockback(knockbackForce, collision.gameObject);
         }
     }
     
@@ -174,7 +212,7 @@ public class EnemyMovement : MonoBehaviour
         // (player can be below enemy at that point)
         if (relativeJumpHeight < 0) return 0f;
 
-        return Mathf.Sqrt( -2f * Physics.gravity.y * relativeJumpHeight);
+        return Mathf.Sqrt( -1f * Physics.gravity.y * relativeJumpHeight);
     }
 
     /// <summary>
@@ -184,12 +222,8 @@ public class EnemyMovement : MonoBehaviour
     /// <param name="jumpVelocity">y velocity</param>
     private void Jump(float jumpVelocity)
     {
-        //Debug.Log("Jump is called with the jump velociy of " + jumpVelocity);
-        if (jumpVelocity > maxJumpVelocity)
-            jumpVelocity = maxJumpVelocity;
-        else if (jumpVelocity < minJumpVelocity)
+        if (jumpVelocity < minJumpVelocity)
             jumpVelocity = minJumpVelocity;
-        //Debug.Log("Jump velocity: " + jumpVelocity);
         jumpActive = true;
         Vector3 vel = rb.velocity;
         rb.velocity = new Vector3(vel.x, jumpVelocity, vel.z);
@@ -206,7 +240,7 @@ public class EnemyMovement : MonoBehaviour
     private IEnumerator WaitAndJump()
     {
         yield return new WaitForSeconds(.2f);
-        Jump(CaclulateJumpVelocity(player.position.y * player.localScale.y * 1.2f - transform.position.y * transform.localScale.y));
+        Jump( jumpMultiplier * CaclulateJumpVelocity(FindRelativeHeight(player.transform)));
     }
 
     /// <summary>
@@ -217,7 +251,7 @@ public class EnemyMovement : MonoBehaviour
     private IEnumerator TurnOffJumpActiveFlag()
     {
         yield return new WaitForSeconds(.1f);
-        if (grounded )
+        if (grounded)
             jumpActive = false;
         else
             StartCoroutine(TurnOffJumpActiveFlag());

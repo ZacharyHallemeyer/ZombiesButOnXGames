@@ -16,7 +16,7 @@ public class WaveSpawner : MonoBehaviour
 
 
     // Prefabs
-    public GameObject enemyPrefab;
+    public GameObject[] enemyPrefabs;
     public Vector3[] enemySpawnPoints;
 
     // Wave numerical variables
@@ -35,7 +35,7 @@ public class WaveSpawner : MonoBehaviour
     {
         if (waveUI == null)
             waveUI = FindObjectOfType<WaveUIScript>();
-        StartCoroutine(LifeCycle());
+        InvokeRepeating("LifeCycle", 2f, 1f);
     }   
 
     private void FillSpawnPoints()
@@ -52,18 +52,14 @@ public class WaveSpawner : MonoBehaviour
         }
     }
 
-    private IEnumerator LifeCycle()
+    private void LifeCycle()
     {
-        yield return new WaitForSeconds(1f);
-        
-        if(!IsEnemyAlive() && !spawningWave)
+        if (!IsEnemyAlive() && !spawningWave)
         {
             waveNumber++;
             spawningWave = true;
             StartCoroutine(StartWave());
         }
-
-        StartCoroutine(LifeCycle());
     }
 
     /// <summary>
@@ -104,7 +100,7 @@ public class WaveSpawner : MonoBehaviour
         for (int i = 0; i < wave.count; i++)
         {
             int spawnIndex = Random.Range(0, enemySpawnPoints.Length);
-            GameObject enemy = Instantiate(enemyPrefab,
+            GameObject enemy = Instantiate(enemyPrefabs[Random.Range(0, enemyPrefabs.Length)],
                                            enemySpawnPoints[spawnIndex],
                                            Quaternion.Euler(0, 0, 0));
             enemy.GetComponent<EnemyMovement>().MoveSpeed = wave.speedForce;
@@ -131,7 +127,6 @@ public class WaveSpawner : MonoBehaviour
         {
             wave = new Wave
             {
-                enemyPrefab = enemyPrefab,
                 health = 40 + waveNumber * 2,
                 count = 3 +  waveNumber * 2,
                 speedForce = 1500 + waveNumber * 100,
@@ -144,7 +139,6 @@ public class WaveSpawner : MonoBehaviour
         {
             wave = new Wave
             {
-                enemyPrefab = enemyPrefab,
                 health = 50 + waveNumber * 2,
                 count = 5 + waveNumber * 2,
                 speedForce = 2000 + waveNumber * 100,
@@ -157,7 +151,6 @@ public class WaveSpawner : MonoBehaviour
         {
             wave = new Wave
             {
-                enemyPrefab = enemyPrefab,
                 health = 70 + waveNumber * 2,
                 count = 7 + waveNumber * 2,
                 speedForce = 3000 + waveNumber * 100,

@@ -10,14 +10,6 @@ public class GameMenu : MainMenu
     public Slider gameMenuMusicSlider;
     public Slider gameMenuSoundEffectSlider;
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            PauseGame();
-        }
-    }
-
     public void PauseGame()
     {
         Time.timeScale = 0;

@@ -83,4 +83,49 @@ public class Tools : MonoBehaviour
 
         return new Vector3(x, y, z);
     }
+
+    /// <summary>
+    /// Reload current gun and plays a reload animation
+    /// </summary>
+    /// <returns></returns>
+    /*private IEnumerator Reload()
+    {
+        CancelInvoke("BaseShoot");
+        yield return new WaitForSecondsRealtime(currentGun.reloadTime / 360f);
+
+        // Rotate gun on x axis
+        gunContainer.localRotation = Quaternion.Euler(1f, 0, 0) * gunContainer.localRotation;
+        reloadAnimationCounter++;
+
+        // if gun hasnt rotated 360 degress then rotate one more degree
+        if ( reloadAnimationCounter < 360)
+            StartCoroutine(Reload());
+        // else reset variables and 'reload' gun
+        else
+        {
+            // Reset reload variables
+            gunContainer.localRotation = new Quaternion(0f, 0f, 0f, 0f);
+            isAnimInProgress = false;
+            reloadAnimationCounter = 0;
+            if (currentGun.reserveAmmo > currentGun.magSize)
+            {
+                currentGun.reserveAmmo += -currentGun.magSize + currentGun.currentAmmo;
+                currentGun.currentAmmo = currentGun.magSize;
+            }
+            else
+            {
+                if(currentGun.magSize - currentGun.currentAmmo <= currentGun.reserveAmmo)
+                {
+                    currentGun.currentAmmo = currentGun.magSize;
+                    currentGun.reserveAmmo = currentGun.magSize - currentGun.currentAmmo;
+                }
+                else
+                {
+                    currentGun.currentAmmo += currentGun.reserveAmmo;
+                    currentGun.reserveAmmo = 0;
+                }
+            }
+            ammoUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+        }
+    }*/
 }

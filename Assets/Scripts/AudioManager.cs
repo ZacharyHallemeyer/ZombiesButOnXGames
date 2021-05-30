@@ -28,6 +28,11 @@ public class AudioManager : MonoBehaviour
 
     private void Awake()
     {
+        if (PlayerPrefs.GetFloat("SoundEffectsVolume", 100) == 1)
+            PlayerPrefs.SetFloat("SoundEffectsVolume", .75f);        
+        if (PlayerPrefs.GetFloat("MusicVolume", 100) == 1)
+            PlayerPrefs.SetFloat("MusicVolume", .75f);
+
         if (instance == null)
             instance = this;
         else

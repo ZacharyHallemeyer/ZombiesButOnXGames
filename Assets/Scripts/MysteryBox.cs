@@ -7,9 +7,10 @@ public class MysteryBox : MonoBehaviour
 {
     public bool IsInteractable { get; private set; } = true;
     public bool IsWeaponSpawned { get; private set; } = false;
-    public int MysteryBoxPrice { get; private set; } = 3000;
+    public int MysteryBoxPrice { get; private set; } = 1000;
 
     public PlayerShooting playerShooting;
+    public PlayerStats playerStats;
     public TextMeshProUGUI text;
 
     // This array must be the same order as PlayerShooting.gunNames
@@ -27,6 +28,8 @@ public class MysteryBox : MonoBehaviour
     {
         if (playerShooting == null)
             playerShooting = FindObjectOfType<PlayerShooting>();
+        if (playerStats == null)
+            playerStats = FindObjectOfType<PlayerStats>();
         if (text == null)
             text = GameObject.Find("InteractableUI").GetComponent<TextMeshProUGUI>();
 
@@ -59,7 +62,7 @@ public class MysteryBox : MonoBehaviour
     private IEnumerator HideUI()
     {
         yield return new WaitForSeconds(.5f);
-        if (!playerShooting.CheckIfMysterBoxInFront() || !IsInteractable)
+        if (!playerStats.CheckIfMysterBoxInFront() || !IsInteractable)
         {
             hideUICoroutine = null;
             text.text = "";
@@ -107,9 +110,7 @@ public class MysteryBox : MonoBehaviour
     {
         text.text = "";
         if(selfDestructCoroutine != null)
-        {
             StopCoroutine(selfDestructCoroutine);
-        }
         Destroy(spawnedGun);
         IsWeaponSpawned = false;
         return gunName;
@@ -132,8 +133,20 @@ public class MysteryBox : MonoBehaviour
         else
         {
             IsInteractable = true;
+            StartCoroutine(GunDecendingAnimation(0));
             selfDestructCoroutine = StartCoroutine(SelfDestructGun());
         }
     }
 
+    private IEnumerator GunDecendingAnimation(int counter)
+    {
+        yield return new WaitForSeconds(10f / 100f);
+        if( counter < 150)
+        {
+            if (spawnedGun == null)
+                yield break;
+            spawnedGun.transform.position -= Vector3.up * .01f;
+            StartCoroutine(GunDecendingAnimation(counter + 1));
+        }
+    }
 }

@@ -22,7 +22,6 @@ public class PlayerMovement : Movement
     private float desiredX;
     private float sensitivity = 50f;
     private float sensMultiplier = 1f;
-    public float crouchGunDegree = 50;
 
     //Movement
     private readonly int moveSpeed = 4500;
@@ -41,6 +40,7 @@ public class PlayerMovement : Movement
     private Vector3 playerScale;
     public float slideForce = 400;
     public float slideCounterMovement = 0.2f;
+    public float crouchGunDegree = 50;
 
     public bool isSliding = false;
 
@@ -51,7 +51,7 @@ public class PlayerMovement : Movement
 
     //Input
     private float x, y;
-    private bool jumping = false, crouching = false;
+    public bool jumping = false, crouching = false;
 
     //Wallrunning
     public LayerMask whatIsWall;
@@ -142,25 +142,24 @@ public class PlayerMovement : Movement
         // Prevents guns and other such objects from shrinking
         foreach(Transform child in gameObject.transform)
             child.localScale = playerScale;
-        StartCoroutine(StartCrouchAnimation(0));
+        InvokeRepeating("StartCrouchAnimation", 0, .1f / crouchGunDegree);
     }
 
-    private IEnumerator StartCrouchAnimation(int counter)
+    private void StartCrouchAnimation()
     {
-        yield return new WaitForSeconds(.1f / crouchGunDegree);
-        if (counter < crouchGunDegree)
-        {
+        if (playerShooting.currentGun.gunContainer.transform.localRotation.eulerAngles.z < crouchGunDegree)
             playerShooting.currentGun.gunContainer.transform.localRotation *= Quaternion.Euler(0, 0, 1f);
-            StartCoroutine(StartCrouchAnimation(counter + 1));
-        }
         else
+        {
             playerShooting.isAnimInProgress = false;
+            CancelInvoke("StartCrouchAnimation");
+        }
     }
 
     /// <summary>
     /// enlarges players to original size
     /// </summary>
-    private void StopCrouch()
+    public void StopCrouch()
     {
         playerShooting.isAnimInProgress = true;
         transform.localScale = playerScale;
@@ -171,19 +170,20 @@ public class PlayerMovement : Movement
         {
             child.localScale = crouchScale;
         }
-        StartCoroutine(StopCrouchAnimation());
+
+        CancelInvoke("StartCrouchAnimation");
+        InvokeRepeating("StopCrouchAnimation", 0, .1f / crouchGunDegree);
     }
 
-    private IEnumerator StopCrouchAnimation()
+    private void StopCrouchAnimation()
     {
-        yield return new WaitForSeconds(.1f / crouchGunDegree);
-        if (playerShooting.currentGun.gunContainer.transform.localRotation.z > .01)
-        {
+        if (playerShooting.currentGun.gunContainer.transform.localRotation.eulerAngles.z > .01f)
             playerShooting.currentGun.gunContainer.transform.localRotation *= Quaternion.Euler(0, 0, -1f);
-            StartCoroutine(StopCrouchAnimation());
-        }
         else
+        {
+            CancelInvoke("StopCrouchAnimation");
             playerShooting.isAnimInProgress = false;
+        }
     }
 
     /// <summary>
@@ -314,7 +314,7 @@ public class PlayerMovement : Movement
     /// </summary>
     private void Climb()
     {
-        rb.AddForce(Vector3.up * climbForce * Time.deltaTime);
+        //rb.AddForce(Vector3.up * climbForce * Time.deltaTime);
     }
 
     /// <summary>
@@ -325,13 +325,9 @@ public class PlayerMovement : Movement
     {
         yield return new WaitForSeconds(.1f);
         if(Mathf.Abs(rb.velocity.magnitude) > .1f)
-        {
             StartCoroutine(TurnOffIsSliding());
-        }
         else
-        {
             isSliding = false;
-        }
     }
 
     /// <summary>
@@ -356,15 +352,15 @@ public class PlayerMovement : Movement
 
         //While Wallrunning
         //Tilts camera in .5 second
-        if (Math.Abs(wallRunCameraTilt) < maxWallRunCameraTilt && IsOnWall && isWallRight)
+        if (Math.Abs(wallRunCameraTilt) < (maxWallRunCameraTilt - .1f) && IsOnWall && isWallRight)
             wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
-        if (Math.Abs(wallRunCameraTilt) < maxWallRunCameraTilt && IsOnWall && isWallLeft)
+        else if (Math.Abs(wallRunCameraTilt) < (maxWallRunCameraTilt - .1f) && IsOnWall && isWallLeft)
             wallRunCameraTilt -= Time.deltaTime * maxWallRunCameraTilt * 2;
 
-        //Tilts camera back again
-        if (wallRunCameraTilt > 0 && !isWallRight && !isWallLeft)
+        // Tilts camera back again
+        else if (wallRunCameraTilt >= .1f && !isWallRight && !isWallLeft)
             wallRunCameraTilt -= Time.deltaTime * maxWallRunCameraTilt * 2;
-        if (wallRunCameraTilt < 0 && !isWallRight && !isWallLeft)
+        else if (wallRunCameraTilt < -.1f && !isWallRight && !isWallLeft)
             wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
     }
 
@@ -419,9 +415,12 @@ public class PlayerMovement : Movement
         //Debug.Log("StartWallRun is called");
 
         // Cancel out y velocity
-        if (rb.velocity.y != 0)
+        if (rb.velocity.y < 0)
+        {
             rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-        rb.useGravity = false;
+            if(rb.useGravity)
+                rb.useGravity = false;
+        }
 
         // prevents player to be crouched on wall
         if (crouching)

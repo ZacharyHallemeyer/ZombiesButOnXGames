@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using TMPro;
 
 public class PlayerStats : MonoBehaviour
 {
@@ -24,6 +26,11 @@ public class PlayerStats : MonoBehaviour
 
     public Dictionary<string, GunInformation> allGunInformation { get; private set; } = new Dictionary<string, GunInformation>();
 
+    // Components
+    public Transform camPosition;
+
+
+    // Number variables
     private float maxHealth = 30;
     private float health;
     private float timeSinceLastHit = 0f, timeToHeal = 3f, healingIncrement = .1f;
@@ -36,6 +43,7 @@ public class PlayerStats : MonoBehaviour
     public PointUIScript pointUI;
     public EnemyStats enemyStats;
     public PlayerShooting playerShooting;
+    public GameMenu gameMenu;
 
     private Coroutine healOverTime;
 
@@ -48,6 +56,40 @@ public class PlayerStats : MonoBehaviour
     public ParticleSystem smgMuzzleFlash;
     public ParticleSystem arMuzzleFlash;
     public ParticleSystem shotgunMuzzleFlash;
+
+    // Loading Screen
+    public Image loadingScreen;
+    public TextMeshProUGUI loadingText;
+
+    // MysteryBox
+    private MysteryBox mysteryBox;
+    public LayerMask whatIsInteractable;
+    public bool shouldInteract;
+
+    /// <summary>
+    /// Starts lifeCycle (slower update function) and sets health
+    /// </summary>
+    private void Awake()
+    {
+        InvokeRepeating("TurnOffLoadingScreen", 1f, .05f);
+        InvokeRepeating("LifeCycle", 1f, 1f);
+        health = maxHealth;
+        // TEMP
+        CurrentPoints = 2000;
+        ChangeInPointValue();
+        //
+    }
+
+    private void Update()
+    {
+        if (CheckIfMysterBoxInFront())
+        {
+            shouldInteract = Input.GetKeyDown(KeyCode.E);
+            HandleMysteryBox();
+        }
+        if (Input.GetKeyDown(KeyCode.Escape))
+            gameMenu.PauseGame();
+    }
 
     /// <summary>
     /// Fills the dictionary allGunInformation with hardcoded informaiton of each gun
@@ -123,30 +165,25 @@ public class PlayerStats : MonoBehaviour
         };
     }
 
+
     /// <summary>
-    /// Starts lifeCycle (slower update function) and sets health
+    /// Gradually turns done the alpha of loading screen until it is less than .01 
     /// </summary>
-    private void Awake()
+    private void TurnOffLoadingScreen()
     {
-        health = maxHealth;
-        StartCoroutine(LifeCycle());
+        loadingScreen.color *= new Color(1, 1, 1, .9f);
+        loadingText.color *= new Color(1, 1, 1, .5f);
+        if (loadingScreen.color.a < .01)
+            CancelInvoke("TurnOffLoadingScreen");
     }
 
-    /// <summary>
-    /// Slower update function
-    /// This function calls itself infinitely after every second
-    /// </summary>
-    /// <returns></returns>
-    public IEnumerator LifeCycle()
+    private void LifeCycle()
     {
-        yield return new WaitForSeconds(1f);
-
         timeSinceLastHit += 1f;
         // Start healing player after a specified time after last time damage was taken
         // healingFunctionActive prevent mmultiple coroutines from occuring all at once
         if (health < maxHealth && timeSinceLastHit > timeToHeal && !healingFunctionActive)
             StartCoroutine(HealOverTime());
-        StartCoroutine(LifeCycle());
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -204,5 +241,34 @@ public class PlayerStats : MonoBehaviour
     public void ChangeInPointValue()
     {
         pointUI.SetPointText(CurrentPoints);
+    }
+
+    public bool CheckIfMysterBoxInFront()
+    {
+        if (Physics.Raycast(transform.position, camPosition.forward, 10f, whatIsInteractable))
+            return true;
+        return false;
+    }
+
+    private void HandleMysteryBox()
+    {
+        if(mysteryBox == null)
+            mysteryBox = FindObjectOfType<MysteryBox>();
+
+        if (mysteryBox.IsInteractable)
+        {
+            mysteryBox.ShowUI();
+            if (shouldInteract)
+                if (mysteryBox.IsWeaponSpawned)
+                {
+                    playerShooting.PickUpWeapon(mysteryBox.DestroyGun());
+                }
+                else if (CurrentPoints >= mysteryBox.MysteryBoxPrice)
+                {
+                    CurrentPoints -= mysteryBox.MysteryBoxPrice;
+                    ChangeInPointValue();
+                    mysteryBox.SpawnRandomWeapon();
+                }
+        }
     }
 }
