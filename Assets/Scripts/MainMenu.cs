@@ -1,11 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    // Post Processing
+    public Slider hueShiftSlider;
+    public Slider bloomSlider;
+
     public Slider musicSlider;
     public Slider soundEffectSlider;
     private AudioManager audioManager;
@@ -54,14 +56,26 @@ public class MainMenu : MonoBehaviour
     public virtual void SetMusicVolumePreference(float volume)
     {
         PlayerPrefs.SetFloat("MusicVolume", volume);
+        if(audioManager == null)
+            audioManager = FindObjectOfType<AudioManager>();
         audioManager.SetMusicVolume();
     }   
     
     public virtual void SetSoundEffectsPreference(float volume)
     {
         PlayerPrefs.SetFloat("SoundEffectsVolume", volume);
+        if (audioManager == null)
+            audioManager = FindObjectOfType<AudioManager>();
         audioManager.SetSoundEffectVolume();
     }
 
+    public virtual void SetNewHueShift(float value)
+    {
+        PlayerPrefs.SetFloat("HueShift", value);
+    }
 
+    public virtual void SetNewBloom(float value)
+    {
+        PlayerPrefs.SetFloat("BloomIntensity", value);
+    }
 }

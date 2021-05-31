@@ -10,6 +10,9 @@ public class EnemyMovement : MonoBehaviour
     public Transform groundCheck;
     public Transform obstacleCheck;
 
+    // Scripts
+    public EnemyStats enemyStats;
+
     // Movement
     public float maxSpeed = 40f;
     
@@ -68,13 +71,9 @@ public class EnemyMovement : MonoBehaviour
     private void Movement()
     {
         Vector3 direction;
-        // if there is an obstacle between enemy and player
-        // then jump over it
+        // if there is an obstacle between enemy and player then jump over it
         if (IsObstacle())
         {
-            //Debug.Log("There is an obstacle");
-            //if (Physics.Raycast(transform.position, transform.forward, 5f))
-            //    Knockback(0);
             if (!jumpActive && IsPlayerInCurrentDirection(0f) && rb.velocity.y < 10f)
                 Jump( jumpMultiplier * CaclulateJumpVelocity( FindRelativeHeight(hit.transform)));
         }   
@@ -85,12 +84,9 @@ public class EnemyMovement : MonoBehaviour
 
         // Player is above enemy so jump up to them
         if (player.position.y - transform.position.y > 1f && !jumpActive
-            && InRange() && IsPlayerInCurrentDirection(threshold)
-            && rb.velocity.y < 10f)
-            if (Random.Range(0, 2) == 0)
-                StartCoroutine(WaitAndJump());
-            else
-                Jump(jumpMultiplier * CaclulateJumpVelocity(FindRelativeHeight(player)));
+                && InRange() && IsPlayerInCurrentDirection(threshold)
+                && rb.velocity.y < 10f)
+            StartCoroutine(WaitAndJump(jumpMultiplier, .2f, player));
 
         // Check if enemy is going faster than max speed return so enemy does not recieve more force
         if ( new Vector3(rb.velocity.x, 0, rb.velocity.z).magnitude  > maxSpeed )
@@ -98,29 +94,18 @@ public class EnemyMovement : MonoBehaviour
 
         // Add force in direction of player
         rb.AddForce(direction.normalized * MoveSpeed * Time.deltaTime);
-
-        // Random movement on random chance to add less predictable patterns to enemy movement
-        if (Random.Range(0,100) == 0)
-        {
-            if (grounded)
-                Jump( Random.Range(5, 15) );
-        }
-        if(Random.Range(0,100) == 0)
-        {
-            rb.AddForce(new Vector3(Random.Range(-10f , 10f), 0, 0) * MoveSpeed * Time.deltaTime);
-        }
     }
 
+    
     private void RandomMovement()
     {
         if (!InRange())
             return;
         if(Random.Range(0, 5) == 0)
         {
-            if (grounded)
+            if (grounded && !jumpActive)
                 // Twice as high as current player position
-                Jump( CaclulateJumpVelocity( (player.position.y + player.localScale.y / 2 
-                                             - transform.position.y + transform.localScale.y / 2) * randomjumpMultiplier));
+                StartCoroutine(WaitAndJump(2, .2f, player));
         }
     }
 
@@ -134,11 +119,6 @@ public class EnemyMovement : MonoBehaviour
         if(Vector3.Dot(transform.forward.normalized, rb.velocity.normalized) > threshold)
             return true;
         return false;
-    }
-
-    private float FindRelativeHeight(Transform target)
-    {
-        return target.position.y + target.localScale.y/2 - transform.position.y + transform.localScale.y/2;
     }
 
     /// <summary>
@@ -175,9 +155,9 @@ public class EnemyMovement : MonoBehaviour
     /// </summary>
     private bool IsObstacle()
     {
-        //Debug.Log("Obstacle function is called");
+        // minus around 5 from max distance to prevent viewing wall behind player as an obstacle
         if (Physics.Raycast(obstacleCheck.position, player.position - obstacleCheck.position, out hit,
-            Vector3.Distance(obstacleCheck.position, player.position), whatIsObstacle))
+            Vector3.Distance(obstacleCheck.position, player.position) - 5f, whatIsObstacle))
         {
             if (player.transform.position.y - transform.position.y < -1f)
                 if (hit.collider.transform.position.y * hit.collider.transform.localScale.y
@@ -190,17 +170,19 @@ public class EnemyMovement : MonoBehaviour
         return false;
     }
     
-    /// <summary>
-    /// Applys knockback with enemy hits any object
-    /// </summary>
-    private void OnCollisionEnter(Collision collision)
+    private void OnCollisionStay(Collision collision)
     {
-        if(collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Enemy"))
+        if (collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Enemy"))
         {
             Knockback(knockbackForce, collision.gameObject);
         }
     }
-    
+
+    private float FindRelativeHeight(Transform target)
+    {
+        return target.position.y + target.localScale.y / 2 - transform.position.y + transform.localScale.y / 2;
+    }
+
     /// <summary>
     /// Returns the jump velocity required to jump to a certain y position
     /// </summary>
@@ -212,7 +194,7 @@ public class EnemyMovement : MonoBehaviour
         // (player can be below enemy at that point)
         if (relativeJumpHeight < 0) return 0f;
 
-        return Mathf.Sqrt( -1f * Physics.gravity.y * relativeJumpHeight);
+        return Mathf.Sqrt(-1f * Physics.gravity.y * relativeJumpHeight);
     }
 
     /// <summary>
@@ -222,25 +204,32 @@ public class EnemyMovement : MonoBehaviour
     /// <param name="jumpVelocity">y velocity</param>
     private void Jump(float jumpVelocity)
     {
+        jumpActive = true;
         if (jumpVelocity < minJumpVelocity)
             jumpVelocity = minJumpVelocity;
-        jumpActive = true;
         Vector3 vel = rb.velocity;
         rb.velocity = new Vector3(vel.x, jumpVelocity, vel.z);
         StartCoroutine(TurnOffJumpActiveFlag());
     }
 
+
     /// <summary>
-    /// waits a specified time then calls Jump() function 
-    /// This is useful because this allows enemy to jump to
-    /// player's apex of jump rather than y position that is not the apex
-    /// Dependencies: Jump()
+    /// call jump function after 'timeToWait' amount of scaled seconds. Also calls compress and expand jump animations 
     /// </summary>
+    /// <param name="jumpMultiplier">value to multiply with jumpVelocity</param>
+    /// <param name="timeToWait">time (scaled time seconds) before jump function is called</param>
+    /// <param name="target">The Transform of the position to jump to</param>
     /// <returns></returns>
-    private IEnumerator WaitAndJump()
+    private IEnumerator WaitAndJump(float jumpMultiplier, float timeToWait, Transform target)
     {
-        yield return new WaitForSeconds(.2f);
-        Jump( jumpMultiplier * CaclulateJumpVelocity(FindRelativeHeight(player.transform)));
+        // compresses game object to half of its height around 3/4 of timeToWait
+        InvokeRepeating("CompressJumpAnimation", 0f, timeToWait / 10f);
+        yield return new WaitForSeconds(timeToWait);
+        // expands game object to its original height around 3/4 of timeToWait
+        InvokeRepeating("ExpandJumpAnimation", 0f, timeToWait / 10f);
+        if(!jumpActive)
+            Jump(jumpMultiplier * CaclulateJumpVelocity(FindRelativeHeight(target)));
+
     }
 
     /// <summary>
@@ -255,5 +244,26 @@ public class EnemyMovement : MonoBehaviour
             jumpActive = false;
         else
             StartCoroutine(TurnOffJumpActiveFlag());
+    }
+
+    /// <summary>
+    /// Compresses gameobject to half of its height in 7 interations
+    /// </summary>
+    private void CompressJumpAnimation()
+    {
+        transform.localScale =  new Vector3(transform.localScale.x, transform.localScale.y * .9f, transform.localScale.z) ;
+        //transform.position = new Vector3(transform.position.x, transform.position.y * .9f, transform.position.z);
+        if (transform.localScale.y < enemyStats.originalScale.y/2)
+            CancelInvoke("CompressJumpAnimation");
+    }
+
+    /// <summary>
+    /// expands gameobject to its original height in 7 interations
+    /// </summary>
+    private void ExpandJumpAnimation()
+    {
+        transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y * 1.01f, transform.localScale.z);
+        if (transform.localScale.y >= enemyStats.originalScale.y)
+            CancelInvoke("ExpandJumpAnimation");
     }
 }

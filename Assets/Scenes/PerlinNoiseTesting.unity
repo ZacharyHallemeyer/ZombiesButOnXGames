@@ -604,7 +604,7 @@ MonoBehaviour:
   buildingCount: 0
   width: 260
   height: 260
-  scale: 0
+  scale: 1
   perlinOffsetMin: 0
   perlinOffsetMax: 10000
   xOffset: 0

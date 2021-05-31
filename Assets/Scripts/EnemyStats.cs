@@ -19,8 +19,13 @@ public class EnemyStats : MonoBehaviour
     public Color[] colors;
     public Color baseColor, damagedColor;
 
+    public Vector3 originalScale;
+
     // Scripts
     private PlayerStats playerStats;
+
+    // TESTING 
+    public Camera playerCam;
 
     private void Awake()
     {
@@ -28,9 +33,10 @@ public class EnemyStats : MonoBehaviour
         playerStats = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerStats>();
 
         // Change size
-        transform.localScale = new Vector3(transform.localScale.x,
+        originalScale = new Vector3(transform.localScale.x,
                                            transform.localScale.y * Random.Range(.5f, 1.5f),
                                            transform.localScale.z);
+        transform.localScale = originalScale;
 
         // Change colors
         baseColor = colors[Random.Range(0, colors.Length)];

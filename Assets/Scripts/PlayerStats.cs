@@ -57,10 +57,6 @@ public class PlayerStats : MonoBehaviour
     public ParticleSystem arMuzzleFlash;
     public ParticleSystem shotgunMuzzleFlash;
 
-    // Loading Screen
-    public Image loadingScreen;
-    public TextMeshProUGUI loadingText;
-
     // MysteryBox
     private MysteryBox mysteryBox;
     public LayerMask whatIsInteractable;
@@ -71,13 +67,8 @@ public class PlayerStats : MonoBehaviour
     /// </summary>
     private void Awake()
     {
-        InvokeRepeating("TurnOffLoadingScreen", 1f, .05f);
         InvokeRepeating("LifeCycle", 1f, 1f);
         health = maxHealth;
-        // TEMP
-        CurrentPoints = 2000;
-        ChangeInPointValue();
-        //
     }
 
     private void Update()
@@ -163,18 +154,6 @@ public class PlayerStats : MonoBehaviour
             range = 75f,
             isAutomatic = false,
         };
-    }
-
-
-    /// <summary>
-    /// Gradually turns done the alpha of loading screen until it is less than .01 
-    /// </summary>
-    private void TurnOffLoadingScreen()
-    {
-        loadingScreen.color *= new Color(1, 1, 1, .9f);
-        loadingText.color *= new Color(1, 1, 1, .5f);
-        if (loadingScreen.color.a < .01)
-            CancelInvoke("TurnOffLoadingScreen");
     }
 
     private void LifeCycle()

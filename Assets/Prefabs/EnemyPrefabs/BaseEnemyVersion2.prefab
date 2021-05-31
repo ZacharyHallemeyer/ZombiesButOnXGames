@@ -262,7 +262,9 @@ MonoBehaviour:
   player: {fileID: 0}
   groundCheck: {fileID: 1582176475715997528}
   obstacleCheck: {fileID: 3130984126399017510}
+  enemyStats: {fileID: 5816073378212106705}
   maxSpeed: 40
+  randomjumpMultiplier: 5
   groundedDistance: 1
   timeMotionless: 0
   maxTimeMotionless: 2
@@ -301,6 +303,7 @@ MonoBehaviour:
   - {r: 0, g: 1, b: 0.59607846, a: 1}
   baseColor: {r: 0, g: 0, b: 0, a: 0}
   damagedColor: {r: 0, g: 0, b: 0, a: 0}
+  originalScale: {x: 0, y: 0, z: 0}
 --- !u!1 &3580405541448729199
 GameObject:
   m_ObjectHideFlags: 0
