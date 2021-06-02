@@ -19,13 +19,10 @@ public class PlayerShooting : MonoBehaviour
 
     public LayerMask whatIsGrapple;
     private Coroutine grappleRecovery;
-    
-    // Scripts
-    public GrappleUIScript grappleUI;
 
     // Numerical variables
-    private float maxGrappleDistance = 200f, maxGrappleTime = 3f, grappleRecoveryIncrement = .01f;
-    private float timeLeftToGrapple;
+    public float maxGrappleDistance = 200f, maxGrappleTime = 3f, grappleRecoveryIncrement = .01f;
+    public float timeLeftToGrapple;
 
     public bool IsGrappling { get; private set; }
     public Vector3 GrapplePoint { get; private set; }
@@ -64,12 +61,8 @@ public class PlayerShooting : MonoBehaviour
     public PlayerStats.GunInformation currentGun;
     public PlayerStats.GunInformation secondaryGun;
 
-    // Gun UI
-    public AmmoUIScript ammoUI;
-
-    // Testing Variables
-    public GameObject collisionObject;
-    public float timer;
+    // UI
+    public PlayerUIScript playerUI;
 
     private void Start()
     {
@@ -93,11 +86,11 @@ public class PlayerShooting : MonoBehaviour
         } while ( currentGun.name.Equals(secondaryGun.name) );
 
         currentGun.gunContainer.SetActive(true);
-        ammoUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+        playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
 
         // Set up grapple
         timeLeftToGrapple = maxGrappleTime;
-        grappleUI.SetMaxGrapple(maxGrappleTime);
+        playerUI.SetMaxGrapple(maxGrappleTime);
         lineRender = GetComponent<LineRenderer>();
     }
     
@@ -221,7 +214,7 @@ public class PlayerShooting : MonoBehaviour
     {
         // Reduce time left of grapple
         timeLeftToGrapple -= Time.deltaTime;
-        grappleUI.SetGrapple(timeLeftToGrapple);
+        playerUI.SetGrapple(timeLeftToGrapple);
         if (timeLeftToGrapple < 0)
             StopGrapple();
         // Pull player to grapple point
@@ -266,13 +259,13 @@ public class PlayerShooting : MonoBehaviour
     /// adds time to player's amount of grapple left by calling itself recursively 
     /// </summary>
     /// <returns>waits for .1 seconds</returns>
-    private IEnumerator GrappleRecovery()
+    public IEnumerator GrappleRecovery()
     {
         yield return new WaitForSeconds(.1f);
         if(timeLeftToGrapple <= maxGrappleTime)
         {
             timeLeftToGrapple += grappleRecoveryIncrement;
-            grappleUI.SetGrapple(timeLeftToGrapple);
+            playerUI.SetGrapple(timeLeftToGrapple);
             grappleRecovery = StartCoroutine(GrappleRecovery());
         }
     }
@@ -305,7 +298,7 @@ public class PlayerShooting : MonoBehaviour
                 CancelInvoke("BaseShoot");
         }
 
-        ammoUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+        playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
 
         Ray ray = new Ray(firePoint.position, reduceAccuracy);
         if (Physics.Raycast(ray, out RaycastHit hit, currentGun.range, whatIsShootable))
@@ -346,7 +339,7 @@ public class PlayerShooting : MonoBehaviour
                 CancelInvoke("BaseShoot");
         }
 
-        ammoUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+        playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
 
         for(int i = 0; i < 10; i++)
         {
@@ -404,7 +397,7 @@ public class PlayerShooting : MonoBehaviour
                 }
 
             }
-            ammoUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+            playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
             CancelInvoke("Reload");
         }
     }
@@ -420,7 +413,7 @@ public class PlayerShooting : MonoBehaviour
         PlayerStats.GunInformation temp = currentGun;
         currentGun = secondaryGun;
         secondaryGun = temp;
-        ammoUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+        playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
         InvokeRepeating("ChangeCurrentGunAnimation", 0, 1f / 180f);
     }
 
@@ -507,7 +500,7 @@ public class PlayerShooting : MonoBehaviour
             // animation finished so reset variables
             isAnimInProgress = false;
             gunContainer.localRotation = new Quaternion(0f, 0f, 0f, 0f);
-            ammoUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+            playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
         }
     }
 

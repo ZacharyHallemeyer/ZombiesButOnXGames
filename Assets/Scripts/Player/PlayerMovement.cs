@@ -91,7 +91,6 @@ public class PlayerMovement : Movement
         MyInput();
         CheckForWall();
         Look();
-        WallRunInput();
     }
 
     /// <summary>
@@ -344,24 +343,27 @@ public class PlayerMovement : Movement
 
         //Rotate, and also make sure we dont over- or under-rotate.
         xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+        xRotation = Mathf.Clamp(xRotation, -89f, 89f);
 
-        //Perform the rotations
-        playerCam.transform.localRotation = Quaternion.Euler(xRotation, desiredX, wallRunCameraTilt);
-        orientation.transform.localRotation = Quaternion.Euler(0, desiredX, 0);
+        // Perform the rotations
+        playerCam.localRotation = Quaternion.Euler(xRotation, desiredX, wallRunCameraTilt);
+        orientation.localRotation = Quaternion.Euler(0, desiredX, 0);
 
-        //While Wallrunning
-        //Tilts camera in .5 second
-        if (Math.Abs(wallRunCameraTilt) < (maxWallRunCameraTilt - .1f) && IsOnWall && isWallRight)
+        
+        // Wallrunning
+        // Tilts camera in .5 second
+        // Prevents camera from spinning on the y-axis at a very fast angular velocity
+        if (wallRunCameraTilt < maxWallRunCameraTilt && IsOnWall && isWallRight)
             wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
-        else if (Math.Abs(wallRunCameraTilt) < (maxWallRunCameraTilt - .1f) && IsOnWall && isWallLeft)
+        else if (wallRunCameraTilt > -maxWallRunCameraTilt && IsOnWall && isWallLeft)
             wallRunCameraTilt -= Time.deltaTime * maxWallRunCameraTilt * 2;
 
         // Tilts camera back again
-        else if (wallRunCameraTilt >= .1f && !isWallRight && !isWallLeft)
+        if(wallRunCameraTilt > 0 && !isWallRight && !isWallLeft)
             wallRunCameraTilt -= Time.deltaTime * maxWallRunCameraTilt * 2;
-        else if (wallRunCameraTilt < -.1f && !isWallRight && !isWallLeft)
+        else if (wallRunCameraTilt < 0 && !isWallRight && !isWallLeft)
             wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
+
     }
 
     private void CounterMovement(float x, float y, Vector2 mag)
@@ -398,19 +400,9 @@ public class PlayerMovement : Movement
     // ================================================================================= //
 
     /// <summary>
-    ///  Wall run if player is on wall 
-    ///  Dependencies: CheckForWall
-    /// </summary>
-    private void WallRunInput() 
-    {
-        // Wallrun
-        if (IsOnWall) StartWallrun();
-    }
-
-    /// <summary>
     /// turns off gravity and adds forces to have player stick to wall
     /// </summary>
-    private void StartWallrun()
+    private void Wallrun()
     {
         //Debug.Log("StartWallRun is called");
 
@@ -458,6 +450,7 @@ public class PlayerMovement : Movement
     private void CheckForWall() //make sure to call in void Update
     {
         IsOnWall = Physics.CheckSphere(wallCheck.position + Vector3.up, wallDistance, whatIsWall);
+        if (IsOnWall) Wallrun();
         isWallRight = Physics.Raycast(transform.position, orientation.right, 1f, whatIsWall);
         isWallLeft = Physics.Raycast(transform.position, -orientation.right, 1f, whatIsWall);
         isWallForward = Physics.Raycast(transform.position, orientation.forward, 1f, whatIsWall);
@@ -469,6 +462,7 @@ public class PlayerMovement : Movement
         if (isWallLeft || isWallRight ) jumpsAvaliable = maxJumps;
 
         // Switch hand gun is in (Prevents gun from phasing into wall)
+        if (isWallRight && isWallLeft) return;
         if (!IsOnWall && gunPosition.localPosition.x < rightHandPosition)
         {
             currentHandPosition = Time.deltaTime * rightHandPosition * 14;
@@ -538,6 +532,10 @@ public class PlayerMovement : Movement
 
     }
 
+    /// <summary>
+    /// Adds upward velocity after .1 seconds of scaled time. This is to allow for player to get horizontal distance from wall
+    /// before applying an upward velocity (cleaner feel)
+    /// </summary>
     private IEnumerator WallJumpHelper()
     {
         yield return new WaitForSeconds(.1f);

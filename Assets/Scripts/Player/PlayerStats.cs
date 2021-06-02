@@ -29,21 +29,27 @@ public class PlayerStats : MonoBehaviour
     // Components
     public Transform camPosition;
 
-
     // Number variables
     private float maxHealth = 30;
     private float health;
     private float timeSinceLastHit = 0f, timeToHeal = 3f, healingIncrement = .1f;
     private bool healingFunctionActive = false;
 
+    public int CurrentLives { get; set; } = 1;
+    public int ShockWaves { get; set; } = 0;
     public int CurrentPoints { get; set; } = 0;
 
+    public Vector3 spawnPosition;
+    // Environment generator uses this vector as to where to spawn shop room
+    public Vector3 shopSpawnPosition = new Vector3(0, -150, 0);
+
     // Scripts
-    public HealthUIScript healthUI;
-    public PointUIScript pointUI;
     public EnemyStats enemyStats;
     public PlayerShooting playerShooting;
     public GameMenu gameMenu;
+
+    // UI
+    public PlayerUIScript playerUI;
 
     private Coroutine healOverTime;
 
@@ -57,26 +63,32 @@ public class PlayerStats : MonoBehaviour
     public ParticleSystem arMuzzleFlash;
     public ParticleSystem shotgunMuzzleFlash;
 
-    // MysteryBox
-    private MysteryBox mysteryBox;
+    // Interactable
+    private InteractableObjects interactableObjects;
     public LayerMask whatIsInteractable;
     public bool shouldInteract;
+    public RaycastHit interactableHit;
 
     /// <summary>
     /// Starts lifeCycle (slower update function) and sets health
     /// </summary>
     private void Awake()
     {
+        spawnPosition = transform.position;
         InvokeRepeating("LifeCycle", 1f, 1f);
         health = maxHealth;
+
+        // TESTING
+        //CurrentPoints = 50000;
+        //pointUI.SetPointText(CurrentPoints);
     }
 
     private void Update()
     {
-        if (CheckIfMysterBoxInFront())
+        if (CheckForInteractableObject())
         {
             shouldInteract = Input.GetKeyDown(KeyCode.E);
-            HandleMysteryBox();
+            HandleInteractable();
         }
         if (Input.GetKeyDown(KeyCode.Escape))
             gameMenu.PauseGame();
@@ -182,7 +194,7 @@ public class PlayerStats : MonoBehaviour
     public void TakeDamage(float damage)
     {
         health -= damage;
-        healthUI.ChangeHealthUI(health, maxHealth);
+        playerUI.ChangeHealthUI(health, maxHealth);
         timeSinceLastHit = 0f;
 
         // Stop healing coroutine if one is active
@@ -194,7 +206,16 @@ public class PlayerStats : MonoBehaviour
 
         if(health <= 0)
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            CurrentLives--;
+            if (CurrentLives <= 0)
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            else
+            {
+                playerUI.SetLivesText(CurrentLives);
+                health = maxHealth;
+                playerUI.ChangeHealthUI(health, maxHealth);
+                transform.position = spawnPosition;
+            }
         }
     }
 
@@ -212,42 +233,134 @@ public class PlayerStats : MonoBehaviour
         else
         {
             health += healingIncrement;
-            healthUI.ChangeHealthUI(health, maxHealth);
+            playerUI.ChangeHealthUI(health, maxHealth);
             healOverTime = StartCoroutine(HealOverTime());
         }
     }
 
     public void ChangeInPointValue()
     {
-        pointUI.SetPointText(CurrentPoints);
+        playerUI.SetPointText(CurrentPoints);
     }
 
-    public bool CheckIfMysterBoxInFront()
+    public bool CheckForInteractableObject()
     {
-        if (Physics.Raycast(transform.position, camPosition.forward, 10f, whatIsInteractable))
+        Ray ray = new Ray(transform.position, camPosition.forward);
+        if (Physics.Raycast(ray, out interactableHit, 10f, whatIsInteractable))
             return true;
         return false;
     }
 
-    private void HandleMysteryBox()
+    private void HandleInteractable()
     {
-        if(mysteryBox == null)
-            mysteryBox = FindObjectOfType<MysteryBox>();
+        if (interactableObjects == null)
+            interactableObjects = FindObjectOfType<InteractableObjects>();
 
-        if (mysteryBox.IsInteractable)
+        switch (interactableHit.collider.tag)
         {
-            mysteryBox.ShowUI();
-            if (shouldInteract)
-                if (mysteryBox.IsWeaponSpawned)
+            case "MysteryBox":
+                if (!(interactableObjects.mysteryBox.isInteractable)) break;
+                interactableObjects.ShowUI(interactableObjects.mysteryBox.name);
+                
+                if (!shouldInteract) return;
+                
+                if (interactableObjects.IsWeaponSpawned)
                 {
-                    playerShooting.PickUpWeapon(mysteryBox.DestroyGun());
+                    playerShooting.PickUpWeapon(interactableObjects.DestroyGun());
                 }
-                else if (CurrentPoints >= mysteryBox.MysteryBoxPrice)
+                else if (CurrentPoints >= interactableObjects.mysteryBox.price)
                 {
-                    CurrentPoints -= mysteryBox.MysteryBoxPrice;
+                    CurrentPoints -= interactableObjects.mysteryBox.price;
                     ChangeInPointValue();
-                    mysteryBox.SpawnRandomWeapon();
+                    interactableObjects.SpawnRandomWeapon();
                 }
+                break;
+
+            case "UpgradeGrapple":
+                if (!(interactableObjects.upgradeGrapple.isInteractable)) break;
+                interactableObjects.ShowUI(interactableObjects.upgradeGrapple.name);
+                
+                if (!shouldInteract) break;
+                
+                if (CurrentPoints >= interactableObjects.upgradeGrapple.price)
+                {
+                    CurrentPoints -= interactableObjects.upgradeGrapple.price;
+                    ChangeInPointValue();
+                    interactableObjects.UpgradeGrapple();
+                }
+
+                break;
+
+            case "UpgradeDamage":
+                if (!(interactableObjects.upgradeDamage.isInteractable)) break;
+                interactableObjects.ShowUI(interactableObjects.upgradeDamage.name);
+                
+                if (!shouldInteract) break;
+
+                if (CurrentPoints >= interactableObjects.upgradeDamage.price)
+                {
+                    CurrentPoints -= interactableObjects.upgradeDamage.price;
+                    ChangeInPointValue();
+                    interactableObjects.UpgradeDamage();
+                }
+                break;
+
+            case "ShockWaveIncrease":
+                if (!(interactableObjects.shockWaveIncrease.isInteractable)) break;
+                interactableObjects.ShowUI(interactableObjects.shockWaveIncrease.name);
+                
+                if (!shouldInteract) break;
+
+                if (CurrentPoints >= interactableObjects.shockWaveIncrease.price)
+                {
+                    CurrentPoints -= interactableObjects.shockWaveIncrease.price;
+                    ChangeInPointValue();
+                    interactableObjects.IncreaseShockWaveItem();
+                    playerUI.SetShockWaveText(ShockWaves);
+                }
+
+                break;
+
+            case "ExtraLife":
+                if (!(interactableObjects.extraLife.isInteractable)) break;
+                interactableObjects.ShowUI(interactableObjects.extraLife.name);
+                
+                if (!shouldInteract) break;
+
+                if (CurrentPoints >= interactableObjects.extraLife.price)
+                {
+                    CurrentPoints -= interactableObjects.extraLife.price;
+                    ChangeInPointValue();
+                    interactableObjects.IncreaseAmountOfLives();
+                    playerUI.SetLivesText(CurrentLives);
+                }
+
+                break;
+
+            case "RefillAmmo":
+                if (!(interactableObjects.refillAmmo.isInteractable)) break;
+                interactableObjects.ShowUI(interactableObjects.refillAmmo.name);
+                
+                if (!shouldInteract) break;
+
+                if(CurrentPoints >= interactableObjects.refillAmmo.price)
+                {
+                    CurrentPoints -= interactableObjects.refillAmmo.price;
+                    ChangeInPointValue();
+                    interactableObjects.RefillAmmo();
+                }
+
+                break;
+            case "ExitShop":
+                interactableObjects.ShowUI(interactableObjects.exitShop.name);
+
+                if (!shouldInteract) break;
+
+                interactableObjects.ExitShop();
+
+                break;
+            default:
+                break;
         }
     }
 }

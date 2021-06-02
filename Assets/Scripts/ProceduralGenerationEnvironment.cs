@@ -16,6 +16,9 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
     public GameObject wallLightForwardPrefab;
     public GameObject wallLightBackwardPrefab;
     public GameObject sunPrefab;
+    public GameObject environmentContainer;
+    public GameObject shopRoomPrefab;
+    public GameObject shopRoomContainer;
 
     // Materials 
     public Material[] sunMaterials;
@@ -41,6 +44,9 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
     public int spaceBetweenWallAndLight;
     public int sunCountMin, sunCountMax, sunRadiusMin, sunRadiusMax;
 
+    // Scripts
+    public PlayerStats playerStats;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -48,6 +54,7 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
         SpawnBuildings();
         SpawnLights();
         SpawnSuns();
+        SpawnShop();
     }
 
     private void SpawnContainer()
@@ -63,25 +70,29 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
         endOfGroundZ = groundZSize / 2;
 
         ground.transform.localScale = new Vector3(groundXSize, 1, groundZSize);
-
+        ground.transform.parent = environmentContainer.transform;
         // Spawn outside walls (4)
         outsideWallSize = Random.Range(outsideWallsMinYSize, outsideWallsMaxYSize);
         GameObject outsideWall = Instantiate(wallPrefab, new Vector3(startOfGroundX, outsideWallSize / 2, 0), transform.rotation);
         outsideWall.transform.localScale = new Vector3(1, outsideWallSize, groundZSize);
+        outsideWall.transform.parent = environmentContainer.transform;
 
         outsideWall = Instantiate(wallPrefab, new Vector3(endOfGroundX, outsideWallSize / 2, 0), transform.rotation);
         outsideWall.transform.localScale = new Vector3(1, outsideWallSize, groundZSize);
+        outsideWall.transform.parent = environmentContainer.transform;
 
         outsideWall = Instantiate(wallPrefab, new Vector3(0, outsideWallSize / 2, startOfGroundZ), transform.rotation);
         outsideWall.transform.localScale = new Vector3(groundXSize, outsideWallSize, 1);
+        outsideWall.transform.parent = environmentContainer.transform;
 
         outsideWall = Instantiate(wallPrefab, new Vector3(0, outsideWallSize / 2, endOfGroundZ), transform.rotation);
         outsideWall.transform.localScale = new Vector3(groundXSize, outsideWallSize, 1);
-
+        outsideWall.transform.parent = environmentContainer.transform;
 
         // Spawn roof
         GameObject roof = Instantiate(roofPrefab, new Vector3(0, outsideWallSize, 0), transform.rotation);
         roof.transform.localScale = new Vector3(groundXSize, 1, groundZSize);
+        roof.transform.parent = environmentContainer.transform;
     }
 
     private void SpawnBuildings()
@@ -125,13 +136,15 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
 
         currentBuilding = Instantiate(buildingPrefab, buildingCenter, Quaternion.Euler(0, 0, 0));
         currentBuilding.transform.localScale = new Vector3(xSize, ySize, zSize);
+        currentBuilding.transform.parent = environmentContainer.transform;
 
         // Spawn one mystery box
-        if(counter == 0)
+        if (counter == 0)
         {
-            Instantiate(mysteryBoxPrefab,
-                        new Vector3(xCoord, ySize + 1.5f, zCoord),
-                        mysteryBoxPrefab.transform.rotation);
+            currentBuilding = Instantiate(mysteryBoxPrefab,
+                                          new Vector3(xCoord, ySize + 1.5f, zCoord),
+                                           mysteryBoxPrefab.transform.rotation);
+            currentBuilding.transform.parent = environmentContainer.transform;
         }
 
         StartCoroutine(SpawnBuilding(counter + 1));
@@ -162,52 +175,51 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
         for (int i = 0; i < groundLightCount; i++)
         {
             xCoord += (groundXSize / groundLightCount);
-            //xCoord = Random.Range(startOfGroundX + spaceBetweenWallAndLight, endOfGroundX - spaceBetweenWallAndLight);
             yCoord = Random.Range(outsideWallSize / 2, 3 * outsideWallSize / 4);
             zCoord = Random.Range(startOfGroundZ + spaceBetweenWallAndLight, endOfGroundZ - spaceBetweenWallAndLight);
             light = Instantiate(groundLightPrefab, new Vector3(xCoord, yCoord, zCoord), groundLightPrefab.transform.rotation);
             light.GetComponent<Light>().color = RandomColor();
             light.GetComponent<Light>().range = yCoord + 100;
+            light.transform.parent = environmentContainer.transform;
         }
         zCoord = 0;
         // Wall lights right
         for (int i = 0; i < wallLightCount; i++)
         {
-            //xCoord += (groundXSize * 2 / groundLightCount);
             xCoord = Random.Range(startOfGroundX + spaceBetweenWallAndLight, endOfGroundX - spaceBetweenWallAndLight);
             yCoord = Random.Range(outsideWallSize / 2, 3 * outsideWallSize / 4);
             light = Instantiate(wallLightRightPrefab, new Vector3(xCoord, yCoord, zCoord), wallLightRightPrefab.transform.rotation);
             light.GetComponent<Light>().color = RandomColor();
-            //light.GetComponent<Light>().range = xCoord + 100;
+            light.transform.parent = environmentContainer.transform;
         }
         // Wall lights left
         for (int i = 0; i < wallLightCount; i++)
         {
-            //xCoord += (groundXSize * 2 / groundLightCount);
             xCoord = Random.Range(startOfGroundX + spaceBetweenWallAndLight, endOfGroundX - spaceBetweenWallAndLight);
             yCoord = Random.Range(outsideWallSize / 2, 3 * outsideWallSize / 4);
             light = Instantiate(wallLightLeftPrefab, new Vector3(xCoord, yCoord, zCoord), wallLightLeftPrefab.transform.rotation);
             light.GetComponent<Light>().color = RandomColor();
+            light.transform.parent = environmentContainer.transform;
         }
         xCoord = 0;
         // Wall lights forward
         for (int i = 0; i < wallLightCount; i++)
         {
-            //zCoord += (groundZSize * 2 / groundLightCount);
             zCoord = Random.Range(startOfGroundZ + spaceBetweenWallAndLight, endOfGroundZ - spaceBetweenWallAndLight);
             yCoord = Random.Range(outsideWallSize / 2, 3 * outsideWallSize / 4);
             light = Instantiate(wallLightForwardPrefab, new Vector3(xCoord, yCoord, zCoord), wallLightForwardPrefab.transform.rotation);
             light.GetComponent<Light>().color = RandomColor();
+            light.transform.parent = environmentContainer.transform;
         }
         zCoord = startOfGroundZ + (groundZSize * 2 / groundLightCount);
         // Wall lights backward
         for (int i = 0; i < wallLightCount; i++)
         {
-            //zCoord += (groundZSize * 2 / groundLightCount);
             zCoord = Random.Range(startOfGroundZ + spaceBetweenWallAndLight, endOfGroundZ - spaceBetweenWallAndLight);
             yCoord = Random.Range(outsideWallSize / 2, 3 * outsideWallSize / 4);
             light = Instantiate(wallLightBackwardPrefab, new Vector3(xCoord, yCoord, zCoord), wallLightBackwardPrefab.transform.rotation);
             light.GetComponent<Light>().color = RandomColor();
+            light.transform.parent = environmentContainer.transform;
         }
     }
 
@@ -231,12 +243,23 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
             currentSun = Instantiate(sunPrefab, new Vector3(xCoord, yCoord, zCoord), transform.rotation);
             currentSun.transform.localScale *= sunRadius;
             currentSun.GetComponent<Renderer>().material = sunMaterials[Random.Range(0, sunMaterials.Length)];
+            currentSun.transform.parent = environmentContainer.transform;
         }
     }
 
     private bool CheckIfSun(Vector3 center, float radius)
     {
         return Physics.CheckSphere(center, radius * 5);
+    }
+
+    private void SpawnShop()
+    {
+        GameObject shopRoom = Instantiate(shopRoomPrefab, 
+                              new Vector3(playerStats.shopSpawnPosition.x, 
+                              playerStats.shopSpawnPosition.y - 2, playerStats.shopSpawnPosition.z), 
+                              Quaternion.Euler(0, 0, 0));
+        shopRoom.transform.parent = shopRoomContainer.transform;
+        
     }
 
     private Color RandomColor()

@@ -14,7 +14,6 @@ public class WaveSpawner : MonoBehaviour
         public float rate;
     }
 
-
     // Prefabs
     public GameObject[] enemyPrefabs;
     public Vector3[] enemySpawnPoints;
@@ -25,16 +24,18 @@ public class WaveSpawner : MonoBehaviour
     public float searchCountdown = 1f;
 
     // Wave boolean variables
-    public bool enemyAlive = false;
     public bool spawningWave = false;
 
     // UI
-    public WaveUIScript waveUI;
+    public PlayerUIScript playerUI;
+
+    // Scripts
+    public GameManager gameManager;
 
     private void Start()
     {
-        if (waveUI == null)
-            waveUI = FindObjectOfType<WaveUIScript>();
+        if (playerUI == null)
+            playerUI = FindObjectOfType<PlayerUIScript>();
         InvokeRepeating("LifeCycle", 2f, 1f);
     }   
 
@@ -56,6 +57,12 @@ public class WaveSpawner : MonoBehaviour
     {
         if (!IsEnemyAlive() && !spawningWave)
         {
+            // Teleport player to shop if wave number is divisable by 3
+            if (!gameManager.playerShopedSpawnedThisWave && waveNumber % 3 == 0 && waveNumber != 0)
+                gameManager.ChangeToShopRoom();
+
+            // Stops new wave from starting while player is in shop
+            if (gameManager.shopRoom.activeSelf) return;
             waveNumber++;
             spawningWave = true;
             StartCoroutine(StartWave());
@@ -79,7 +86,7 @@ public class WaveSpawner : MonoBehaviour
     private IEnumerator StartWave()
     {
         //Debug.Log("Start wave is called");
-        StartCoroutine(waveUI.NewWaveUI(waveNumber));
+        StartCoroutine(playerUI.NewWaveUI(waveNumber));
         yield return new WaitForSeconds(timeBetweenWaves);
         StartCoroutine(SpawnWave());
     }
@@ -120,8 +127,8 @@ public class WaveSpawner : MonoBehaviour
     /// <returns> Wave </returns>
     private Wave CreateWave()
     {
+        gameManager.playerShopedSpawnedThisWave = false;
         Wave wave;
-        //Debug.Log("Create Wave is called");
         // Easy Diff.
         if(PlayerPrefs.GetString("Difficulty").Equals("Easy"))
         {

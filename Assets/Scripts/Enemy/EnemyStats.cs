@@ -7,8 +7,6 @@ public class EnemyStats : MonoBehaviour
     public int BaseDamage { private set; get; } = 10;
 
     public MeshRenderer meshRenderer;
-    public Material normalMaterial;
-    public Material showDamageMaterial;
     private readonly float showDamageDuration = .2f;
     private bool showDamageActive = false;
 
@@ -24,13 +22,14 @@ public class EnemyStats : MonoBehaviour
     // Scripts
     private PlayerStats playerStats;
 
-    // TESTING 
-    public Camera playerCam;
+    // Components
+    public AudioSource audioSource;
 
     private void Awake()
     {
         health = MaxHealth;
         playerStats = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerStats>();
+        audioSource.volume = PlayerPrefs.GetFloat("SoundEffectsVolume", .75f);
 
         // Change size
         originalScale = new Vector3(transform.localScale.x,
