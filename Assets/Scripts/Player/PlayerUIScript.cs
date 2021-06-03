@@ -32,6 +32,9 @@ public class PlayerUIScript : MonoBehaviour
     // ShockWave UI
     public TextMeshProUGUI shockWaveText;
 
+    // Grenade UI
+    public TextMeshProUGUI grenadeText;
+
     // Grapple =============================
     public void SetMaxGrapple(float maxValue)
     {
@@ -128,4 +131,13 @@ public class PlayerUIScript : MonoBehaviour
     }
 
     // End of Shock Wave ===================
+
+    // Grenade =============================
+
+    public void SetGrenadeText(int amount)
+    {
+        grenadeText.text = "GRENADES: " + amount;
+    }
+
+    // End of Grenade
 }

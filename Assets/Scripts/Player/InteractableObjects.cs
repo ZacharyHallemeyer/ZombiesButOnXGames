@@ -24,7 +24,7 @@ public class InteractableObjects : MonoBehaviour
     {
         name = "UpgradeGrapple",
         isInteractable = true,
-        price = 2000,
+        price = 1000,
         priceIncrement = 200,
     };
 
@@ -32,7 +32,7 @@ public class InteractableObjects : MonoBehaviour
     {
         name = "UpgradeDamage",
         isInteractable = true,
-        price = 2000,
+        price = 1000,
         priceIncrement = 100,
     };
 
@@ -40,7 +40,7 @@ public class InteractableObjects : MonoBehaviour
     {
         name = "ShockWaveIncrease",
         isInteractable = true,
-        price = 500,
+        price = 100,
         priceIncrement = 100,
     };
 
@@ -48,7 +48,7 @@ public class InteractableObjects : MonoBehaviour
     {
         name = "ExtraLife",
         isInteractable = true,
-        price = 5000,
+        price = 2500,
     };    
 
     public InteractableObject refillAmmo = new InteractableObject
@@ -57,6 +57,13 @@ public class InteractableObjects : MonoBehaviour
         isInteractable = true,
         price = 2500,
         priceIncrement = 100,
+    };
+
+    public InteractableObject grenadeIncrease = new InteractableObject
+    {
+        name = "GrenadeIncrease",
+        isInteractable = true,
+        price = 100,
     };
 
     public InteractableObject exitShop = new InteractableObject
@@ -100,8 +107,6 @@ public class InteractableObjects : MonoBehaviour
 
     }
 
-
-    // MYSTERY BOX ====================================================
     /// <summary>
     /// Changes to text of the iteractable UI to reflect what interactable object player is currently looking at
     /// </summary>
@@ -145,6 +150,12 @@ public class InteractableObjects : MonoBehaviour
             case "RefillAmmo":
                 currentObject = refillAmmo;
                 text.text = "Press E To Refill Ammo For " + refillAmmo.price + " Points";
+                if (hideUICoroutine == null)
+                    hideUICoroutine = StartCoroutine(HideUI());
+                break;
+            case "GrenadeIncrease":
+                currentObject = grenadeIncrease;
+                text.text = "Press E To Purchase A Grenade For " + grenadeIncrease.price + " Points";
                 if (hideUICoroutine == null)
                     hideUICoroutine = StartCoroutine(HideUI());
                 break;
@@ -322,6 +333,18 @@ public class InteractableObjects : MonoBehaviour
 
     // END OF REFILL AMMO ==============================================
 
+    // GRENADE INCREASE ================================================
+
+    public void GrenadeIncrease()
+    {
+        currentObject.isInteractable = false;
+        playerShooting.CurrentGrenades++;
+        playerUI.SetGrenadeText(playerShooting.CurrentGrenades);
+        StartCoroutine(TurnOnInteractable(currentObject));
+    }
+
+    // END OF GRENADE INCREASE =========================================
+
     // SHOCK WAVE SHOP =================================================
 
     /// <summary>
@@ -331,7 +354,7 @@ public class InteractableObjects : MonoBehaviour
     {
         shockWaveIncrease.price += shockWaveIncrease.priceIncrement;
         currentObject.isInteractable = false;
-        playerStats.ShockWaves++;
+        playerShooting.CurrentShockWaves++;
         StartCoroutine(TurnOnInteractable(currentObject));
     }
 
@@ -363,6 +386,7 @@ public class InteractableObjects : MonoBehaviour
     }
 
     // END OF EXIT SHOP ================================================
+
 
     /// <summary>
     /// Sets 'isInteractable' to true after 1 seconds of the object given in parems

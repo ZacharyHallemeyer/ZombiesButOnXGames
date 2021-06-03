@@ -64,10 +64,23 @@ public class PlayerShooting : MonoBehaviour
     // UI
     public PlayerUIScript playerUI;
 
+    // Grenade
+    public int CurrentGrenades { get; set; }
+    public int startGrenades = 5;
+    public Transform grenadeFirePoint;
+    public GameObject grenadePrefab;
+    public int grenadeThrowForce;
+
+    // Item variables
+    public int CurrentShockWaves { get; set; } = 3;
+    public PlayerItems playerItems;
+    
     private void Start()
     {
         audioManager = FindObjectOfType<AudioManager>();
 
+        CurrentGrenades = startGrenades;
+        playerUI.SetGrenadeText(CurrentGrenades);
         // Set up guns
         playerStats.SetGunInformation();
 
@@ -153,6 +166,17 @@ public class PlayerShooting : MonoBehaviour
                 audioManager.Play("GunReload");
                 InvokeRepeating("Reload", 0, currentGun.reloadTime / 360f);
             }
+
+            // Handle Grenades
+            if (Input.GetKeyDown(KeyCode.G) && CurrentGrenades > 0)
+                ThrowGrenade();
+        }
+        // Handle items
+        if (Input.GetKeyDown(KeyCode.Q) && CurrentShockWaves > 0)
+        {
+            CurrentShockWaves--;
+            playerUI.SetShockWaveText(CurrentShockWaves);
+            playerItems.StartShockWave();
         }
     }
 
@@ -306,8 +330,6 @@ public class PlayerShooting : MonoBehaviour
             // Play particle representing where ray hit
             shotHitParitcleGameObject.transform.position = hit.point;
             shotHitParticle.Play();
-
-            //Instantiate(collisionObject, hit.point, hit.collider.transform.rotation);
 
             // Damage enemy if hit was an enemy
             EnemyStats enemyStats = hit.collider.GetComponent<EnemyStats>();
@@ -559,5 +581,13 @@ public class PlayerShooting : MonoBehaviour
     private void CorrectGunPosition()
     {
         gunPosition.localPosition = Vector3.zero;
+    }
+
+    private void ThrowGrenade()
+    {
+        CurrentGrenades--;
+        playerUI.SetGrenadeText(CurrentGrenades);
+        Rigidbody grenade = Instantiate(grenadePrefab, grenadeFirePoint.position, transform.rotation).GetComponent<Rigidbody>();
+        grenade.AddForce(grenadeFirePoint.forward * grenadeThrowForce * Time.deltaTime, ForceMode.Impulse);
     }
 }

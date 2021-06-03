@@ -20,8 +20,6 @@ public class GameMenu : MainMenu
 
     private void Start()
     {
-
-
         postProcessingVolume = FindObjectOfType<PostProcessVolume>();
         postProcessingVolume.profile.TryGetSettings(out bloomLayer);
         postProcessingVolume.profile.TryGetSettings(out colorGradingLayer);

@@ -13,6 +13,9 @@ TagManager:
   - ShockWaveIncrease
   - RefillAmmo
   - ExitShop
+  - ShockWave
+  - Explosion
+  - GrenadeIncrease
   layers:
   - Default
   - TransparentFX

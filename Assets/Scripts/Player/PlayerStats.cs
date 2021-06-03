@@ -36,7 +36,6 @@ public class PlayerStats : MonoBehaviour
     private bool healingFunctionActive = false;
 
     public int CurrentLives { get; set; } = 1;
-    public int ShockWaves { get; set; } = 0;
     public int CurrentPoints { get; set; } = 0;
 
     public Vector3 spawnPosition;
@@ -316,7 +315,7 @@ public class PlayerStats : MonoBehaviour
                     CurrentPoints -= interactableObjects.shockWaveIncrease.price;
                     ChangeInPointValue();
                     interactableObjects.IncreaseShockWaveItem();
-                    playerUI.SetShockWaveText(ShockWaves);
+                    playerUI.SetShockWaveText(playerShooting.CurrentShockWaves);
                 }
 
                 break;
@@ -351,6 +350,22 @@ public class PlayerStats : MonoBehaviour
                 }
 
                 break;
+
+            case "GrenadeIncrease":
+                if (!(interactableObjects.grenadeIncrease.isInteractable)) break;
+                interactableObjects.ShowUI(interactableObjects.grenadeIncrease.name);
+
+                if (!shouldInteract) break;
+
+                if (CurrentPoints >= interactableObjects.grenadeIncrease.price)
+                {
+                    CurrentPoints -= interactableObjects.grenadeIncrease.price;
+                    ChangeInPointValue();
+                    interactableObjects.GrenadeIncrease();
+                }
+
+                break;
+
             case "ExitShop":
                 interactableObjects.ShowUI(interactableObjects.exitShop.name);
 
@@ -359,6 +374,7 @@ public class PlayerStats : MonoBehaviour
                 interactableObjects.ExitShop();
 
                 break;
+
             default:
                 break;
         }

@@ -50,7 +50,7 @@ public class EnemyStats : MonoBehaviour
     /// <param name="damage">variable to subtract from emeny health</param>
     public void TakeDamage(float damage)
     {
-        playerStats.CurrentPoints += (int)damage;
+        playerStats.CurrentPoints += (int) damage;
         playerStats.ChangeInPointValue();
         health -= damage;
 

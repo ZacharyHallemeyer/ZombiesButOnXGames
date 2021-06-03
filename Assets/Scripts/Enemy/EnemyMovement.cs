@@ -32,7 +32,9 @@ public class EnemyMovement : MonoBehaviour
     public RaycastHit hit;
 
     // Knockback variables
-    private float knockbackForce = 1500f;
+    private int knockbackForce = 1500;
+    private float shockWaveForce = 5000;
+
 
     private void Awake()
     {
@@ -125,14 +127,15 @@ public class EnemyMovement : MonoBehaviour
     /// Applies force backwards
     /// </summary>
     /// <param name="knockbackForce"></param>
-    private void Knockback(float knockbackForce, GameObject collider)
+    private void Knockback(float knockbackForce, Transform collider)
     {
-        if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, 1f))
-        {
+        if (collider.GetComponent<Rigidbody>() != null)
             rb.velocity = collider.GetComponent<Rigidbody>().velocity;
-            Vector3 direction = -(hit.point - transform.position).normalized;
-            rb.AddForce(direction * knockbackForce);
-        }
+        else
+            rb.velocity = Vector3.zero;
+
+        rb.AddForce(-(collider.position - transform.position).normalized 
+                     * knockbackForce * Time.deltaTime, ForceMode.Impulse);
     }
     
     /// <summary>
@@ -163,18 +166,31 @@ public class EnemyMovement : MonoBehaviour
                 if (hit.collider.transform.position.y * hit.collider.transform.localScale.y
                     < transform.position.y * transform.localScale.y)
                     return false;
-            //Debug.Log("Obstacle: " + hit.collider.name + ", Height: " + hit.collider.transform.position.y * hit.collider.transform.localScale.y);
             return true;
         }
 
         return false;
     }
-    
-    private void OnCollisionStay(Collision collision)
+
+    private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Player") || collision.gameObject.CompareTag("Enemy"))
+        switch (collision.gameObject.tag)
         {
-            Knockback(knockbackForce, collision.gameObject);
+            case "Enemy":
+                Knockback(knockbackForce, collision.transform);
+                break;
+            case "Player":
+                Knockback(knockbackForce, collision.transform);
+                break;
+            case "ShockWave":
+                Knockback(shockWaveForce, collision.transform);
+                break;
+            case "Explosion":
+                //Knockback(explosionForce, collision.transform);
+                break;
+
+            default:
+                break;
         }
     }
 
