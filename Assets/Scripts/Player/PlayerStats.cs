@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using TMPro;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 public class PlayerStats : MonoBehaviour
 {
@@ -37,6 +37,7 @@ public class PlayerStats : MonoBehaviour
 
     public int CurrentLives { get; set; } = 1;
     public int CurrentPoints { get; set; } = 0;
+    public int TotalEnemiesKilled { get; set; } = 0;
 
     public Vector3 spawnPosition;
     // Environment generator uses this vector as to where to spawn shop room
@@ -46,6 +47,7 @@ public class PlayerStats : MonoBehaviour
     public EnemyStats enemyStats;
     public PlayerShooting playerShooting;
     public GameMenu gameMenu;
+    public WaveSpawner waveSpawner;
 
     // UI
     public PlayerUIScript playerUI;
@@ -73,6 +75,8 @@ public class PlayerStats : MonoBehaviour
     /// </summary>
     private void Awake()
     {
+        if (waveSpawner == null)
+            waveSpawner = FindObjectOfType<WaveSpawner>();
         spawnPosition = transform.position;
         InvokeRepeating("LifeCycle", 1f, 1f);
         health = maxHealth;
@@ -188,6 +192,7 @@ public class PlayerStats : MonoBehaviour
     /// <summary>
     /// subtract damage from player health, update health UI, stop healing function
     /// and restarts scene if player health is less than or equal to zero
+    /// Dependencies: Death
     /// </summary>
     /// <param name="damage">variable to be subtracted from player healht</param>
     public void TakeDamage(float damage)
@@ -207,15 +212,40 @@ public class PlayerStats : MonoBehaviour
         {
             CurrentLives--;
             if (CurrentLives <= 0)
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                Death();
             else
             {
+                // Reset player health and teleport to spawn location
                 playerUI.SetLivesText(CurrentLives);
                 health = maxHealth;
                 playerUI.ChangeHealthUI(health, maxHealth);
                 transform.position = spawnPosition;
             }
         }
+    }
+
+    /// <summary>
+    /// Reloads current scene and updates high score if necessary
+    /// </summary>
+    private void Death()
+    {
+        PlayerData playerData = SaveSystem.LoadPlayerData();
+        if(playerData != null)
+        {
+            // minus 1 from current wave number because we want completed waves 
+            if(waveSpawner.waveNumber - 1 > playerData.highScoreWave)
+                playerData.highScoreWave = waveSpawner.waveNumber - 1;
+            if (CurrentPoints > playerData.highestPoints)
+                playerData.highestPoints = CurrentPoints;
+            Debug.Log("Save from old file");
+            SaveSystem.SavePlayerData(playerData.highScoreWave, TotalEnemiesKilled, playerData.highestPoints);
+        }
+        // if no current data
+        else
+            SaveSystem.SavePlayerData(waveSpawner.waveNumber, TotalEnemiesKilled, CurrentPoints);
+
+        // Reload current scene
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     /// <summary>

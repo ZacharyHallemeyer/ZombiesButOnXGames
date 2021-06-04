@@ -11,8 +11,11 @@ public class LoadingScreenScript : MonoBehaviour
     // Player scripts
     public PlayerStats playerStats;
 
-    void Start()
+    void Awake()
     {
+        // Reset time scale incase this is a second load (a second load has time scale of 0 because when player)
+        // exits to main menu time scale is set to 0
+        Time.timeScale = 1;
         InvokeRepeating("TurnOffLoadingScreen", 1f, .05f);
     }
 
@@ -36,14 +39,6 @@ public class LoadingScreenScript : MonoBehaviour
 
     public void TurnOnLoadingScreen()
     {
-        /*loadingScreen.color *= new Color(1, 1, 1, 1.1f);
-        loadingText.color *= new Color(1, 1, 1, 1.5f);
-
-        if (loadingScreen.color.a > .9)
-        {
-            InvokeRepeating("TurnOffLoadingScreen", 1f, .01f);
-            CancelInvoke("TurnOnLoadingScreen");
-        }*/
         loadingScreen.color = new Color(loadingScreen.color.r, loadingScreen.color.g, loadingScreen.color.b, 1f);
         loadingText.color = new Color(loadingText.color.r, loadingText.color.g, loadingText.color.b, 1f);
     }

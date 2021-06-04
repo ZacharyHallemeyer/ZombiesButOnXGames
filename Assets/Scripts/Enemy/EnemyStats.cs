@@ -20,10 +20,13 @@ public class EnemyStats : MonoBehaviour
     public Vector3 originalScale;
 
     // Scripts
+    public EnemyMovement enemyMovement;
     private PlayerStats playerStats;
+    public AudioSource audioSource;
 
     // Components
-    public AudioSource audioSource;
+    public BoxCollider boxCollider;
+    public Rigidbody rb;
 
     private void Awake()
     {
@@ -42,12 +45,9 @@ public class EnemyStats : MonoBehaviour
         meshRenderer.material.color = baseColor;
     }
 
-    /// <summary>
     /// subtracts damage from health and destorys enemy object if enemy
     /// health is less than or equal to 0
-    /// Dependencies: ShowDamage
-    /// </summary>
-    /// <param name="damage">variable to subtract from emeny health</param>
+    /// Dependencies: ShowDamage, Death
     public void TakeDamage(float damage)
     {
         playerStats.CurrentPoints += (int) damage;
@@ -59,15 +59,12 @@ public class EnemyStats : MonoBehaviour
 
         if (health <= 0)
         {
-            Destroy(gameObject);
+            Death();
         }
     }
 
-    /// <summary>
     /// Changes the material of enemy to a different material than switches back
     /// to original material after showDamageDuration (float) amount of seconds
-    /// </summary>
-    /// <returns></returns>
     private IEnumerator ShowDamage()
     {
         showDamageActive = true;
@@ -75,5 +72,23 @@ public class EnemyStats : MonoBehaviour
         yield return new WaitForSeconds(showDamageDuration);
         meshRenderer.material.color = baseColor;
         showDamageActive = false;
+    }
+
+    private void Death()
+    {
+        playerStats.TotalEnemiesKilled++;
+        enemyMovement.enabled = false;
+        boxCollider.enabled = false;
+        InvokeRepeating("DeathAnimation", 0f, .01f);
+    }
+
+    private void DeathAnimation()
+    {
+        transform.localRotation *= Quaternion.Euler(0f, 0f, 1.5f);
+        if(transform.localEulerAngles.z > 350)
+        {
+            CancelInvoke("DeathAnimation");
+            Destroy(gameObject);
+        }
     }
 }

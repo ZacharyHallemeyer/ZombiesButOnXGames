@@ -149,7 +149,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 112
-  m_CollisionDetection: 1
+  m_CollisionDetection: 3
 --- !u!82 &5724109833174959524
 AudioSource:
   m_ObjectHideFlags: 0
@@ -302,7 +302,10 @@ MonoBehaviour:
   baseColor: {r: 0, g: 0, b: 0, a: 0}
   damagedColor: {r: 0, g: 0, b: 0, a: 0}
   originalScale: {x: 0, y: 0, z: 0}
+  enemyMovement: {fileID: 1582176475825200958}
   audioSource: {fileID: 5724109833174959524}
+  boxCollider: {fileID: 1582176475825200944}
+  rb: {fileID: 1582176475825200945}
 --- !u!1 &3580405541448729199
 GameObject:
   m_ObjectHideFlags: 0

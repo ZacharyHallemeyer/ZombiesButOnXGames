@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -25,6 +24,7 @@ public class PlayerUIScript : MonoBehaviour
     public TextMeshProUGUI pointDisappearingText;
     private Coroutine pointHideText;
     private int oldPoint;
+    private int pointAccumulator;
 
     // Lives UI
     public TextMeshProUGUI livesText;
@@ -95,7 +95,10 @@ public class PlayerUIScript : MonoBehaviour
     public void ChangeDisappearingText(int points)
     {
         if (points - oldPoint > 0)
-            pointDisappearingText.text = "+" + (points - oldPoint);
+        {
+            pointAccumulator += points - oldPoint;
+            pointDisappearingText.text = "+" + pointAccumulator;
+        }
         else
             pointDisappearingText.text = (points - oldPoint).ToString();
         oldPoint = points;
@@ -109,6 +112,7 @@ public class PlayerUIScript : MonoBehaviour
     public IEnumerator HideText()
     {
         yield return new WaitForSeconds(1f);
+        pointAccumulator = 0;
         pointDisappearingText.text = "";
     }
 

@@ -23,6 +23,10 @@ public class PlayerItems : MonoBehaviour
         Physics.IgnoreCollision(playerCollider, shockWave.GetComponent<SphereCollider>() );
     }
 
+    /// <summary>
+    /// plays sound and particle system and starts shock wave
+    /// Dependiencies: ExpandShockWave
+    /// </summary>
     public void StartShockWave()
     {
         // Move to player 
@@ -33,6 +37,9 @@ public class PlayerItems : MonoBehaviour
         InvokeRepeating("ExpandShockWave", 0f, .01f);
     }
 
+    /// <summary>
+    /// Expands shockwave(sphere w/ only a sphere collider) scale
+    /// </summary>
     private void ExpandShockWave()
     {
         shockWave.transform.localScale *= 1.1f;

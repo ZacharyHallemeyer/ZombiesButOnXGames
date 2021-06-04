@@ -65,8 +65,8 @@ public class PlayerShooting : MonoBehaviour
     public PlayerUIScript playerUI;
 
     // Grenade
-    public int CurrentGrenades { get; set; }
-    public int startGrenades = 5;
+    public int CurrentGrenades { get; set; } = 5;
+    //public int startGrenades = 5;
     public Transform grenadeFirePoint;
     public GameObject grenadePrefab;
     public int grenadeThrowForce;
@@ -79,8 +79,10 @@ public class PlayerShooting : MonoBehaviour
     {
         audioManager = FindObjectOfType<AudioManager>();
 
-        CurrentGrenades = startGrenades;
+        // Set up items and grenades 
         playerUI.SetGrenadeText(CurrentGrenades);
+        playerUI.SetShockWaveText(CurrentShockWaves);
+
         // Set up guns
         playerStats.SetGunInformation();
 
@@ -112,23 +114,17 @@ public class PlayerShooting : MonoBehaviour
         // Handle grapple
         // Player must have more than 25% of grapple left to start grapple
         if (Input.GetMouseButtonDown(2) && timeLeftToGrapple > (maxGrappleTime * .25))
-        {
             StartGrapple();
-        }
         else if ( (Input.GetMouseButtonUp(2) || Mathf.Abs( (player.position - GrapplePoint).magnitude ) < 5f )
                  && IsGrappling)
-        {
             StopGrapple();
-        }
 
         // Handle gun shooting
         if (!isAnimInProgress)
         {
             // Switching between primary and secondary by using mouse scroll wheel or '1' on keyboard
             if (Input.GetKeyDown(KeyCode.Alpha1))
-            {
                 ChangeCurrentWeapon();
-            }
             else if (Input.mouseScrollDelta.y != 0)
             {
                 scrollingCounter++;
@@ -162,7 +158,6 @@ public class PlayerShooting : MonoBehaviour
             // Reload
             else if (currentGun.currentAmmo < currentGun.magSize && Input.GetKeyDown(KeyCode.R) && currentGun.reserveAmmo > 0)
             {
-                isAnimInProgress = true;
                 audioManager.Play("GunReload");
                 InvokeRepeating("Reload", 0, currentGun.reloadTime / 360f);
             }
@@ -185,9 +180,7 @@ public class PlayerShooting : MonoBehaviour
     {
         DrawRope();
         if(IsGrappling)
-        {
             ContinueGrapple();
-        }
     }
 
 
@@ -198,11 +191,8 @@ public class PlayerShooting : MonoBehaviour
     /// </summary>
     private void StartGrapple()
     {
-        //Debug.Log("Start Grapple");
-
         Ray ray = new Ray(cam.position, cam.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, maxGrappleDistance, whatIsGrapple ))
-        //if (Physics.Raycast(cam.position, cam.forward, out RaycastHit hit, maxGrappleDistance) && !hit.collider.CompareTag("Player"))
         {
             playerMovement.StopCrouch();
             // Turn off grapple recovery
@@ -241,6 +231,7 @@ public class PlayerShooting : MonoBehaviour
         playerUI.SetGrapple(timeLeftToGrapple);
         if (timeLeftToGrapple < 0)
             StopGrapple();
+
         // Pull player to grapple point
         Vector3 direction = (GrapplePoint - player.position).normalized;
         playerRB.AddForce(direction * 100 * Time.deltaTime, ForceMode.Impulse);
@@ -248,9 +239,7 @@ public class PlayerShooting : MonoBehaviour
         // Prevent grapple from phasing through/into objectsz
         // (Game objects such as buildings must have a rotation for this section to work)
         if (Physics.Raycast(GrapplePoint, (player.position - GrapplePoint), Vector3.Distance(GrapplePoint, player.position) - 5, whatIsGrapple))
-        {
             StopGrapple();
-        }
     }
 
 
@@ -339,6 +328,9 @@ public class PlayerShooting : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// fires 10 raycasts from firepoint and damages if ray hits an enemy
+    /// </summary>
     private void ShotgunShoot()
     {
         audioManager.Play(currentGun.name);
@@ -385,21 +377,28 @@ public class PlayerShooting : MonoBehaviour
 
     }
 
+    // Must called with InvokeRepeating
+    // This function plays a reload animation and 'reloads' current gun
     private void Reload()
     {
         CancelInvoke("BaseShoot");
+        // if first iteration set isAnimInProgress to true
+        if (animationCounter == 0)
+            isAnimInProgress = true;
 
         // Rotate gun on x axis
         gunContainer.localRotation = Quaternion.Euler(1f, 0, 0) * gunContainer.localRotation;
         animationCounter++;
 
-        // if gun hasnt rotated 360 degress then rotate one more degree
+        // if gun has rotated 360 degress then stop function
         if(animationCounter >= 360)
         {
             // Reset reload variables
             gunContainer.localRotation = new Quaternion(0f, 0f, 0f, 0f);
             isAnimInProgress = false;
             animationCounter = 0;
+
+            // Reload gun
             if (currentGun.reserveAmmo > currentGun.magSize)
             {
                 currentGun.reserveAmmo += -currentGun.magSize + currentGun.currentAmmo;
@@ -419,15 +418,14 @@ public class PlayerShooting : MonoBehaviour
                 }
 
             }
+            // Reset ammo UI and cancel invoke
             playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
             CancelInvoke("Reload");
         }
     }
 
-    /// <summary>
-    /// Change current weapon to secondary and vice versa
-    /// Dependencies: ChangeCurrentWeaponAnimation
-    /// </summary>
+    // Change current weapon to secondary and vice versa
+    // Dependencies: ChangeCurrentWeaponAnimation
     private void ChangeCurrentWeapon()
     {
         CancelInvoke("BaseShoot");
@@ -436,9 +434,13 @@ public class PlayerShooting : MonoBehaviour
         currentGun = secondaryGun;
         secondaryGun = temp;
         playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+        // 180 degrees in 1 second of scaled time
         InvokeRepeating("ChangeCurrentGunAnimation", 0, 1f / 180f);
     }
 
+    /// <summary>
+    /// Rotates current gun 90 degrees on x-axis, switches to secondary, and moves secondary (new current) down 90 degrees
+    /// </summary>
     private void ChangeCurrentGunAnimation()
     {
         animationCounter++;
@@ -479,6 +481,10 @@ public class PlayerShooting : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Resets current gun and starts pick up weapon animation
+    /// </summary>
+    /// <param name="gunName"></param>
     public void PickUpWeapon(string gunName)
     {
         isAnimInProgress = true;
@@ -487,10 +493,12 @@ public class PlayerShooting : MonoBehaviour
         StartCoroutine(PickWeapnAnimation(0, gunName));
     }
 
+    
     /// <summary>
     /// plays animation where primary gun is lifted over head and seconday gun comes down 
+    /// counter: current count of how many times function has been called
+    /// gunName: name of gun to switch to 
     /// </summary>
-    /// <param name="counter">current count of how many times function has been called</param>
     private IEnumerator PickWeapnAnimation(int counter, string gunName)
     {
         yield return new WaitForSeconds(1f / 180f);
@@ -525,7 +533,6 @@ public class PlayerShooting : MonoBehaviour
             playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
         }
     }
-
     /// <summary>
     /// either makes gun jump around slightly in x/y directions or makes gun flip upwards depending on whether 
     /// the current gun is automatic
@@ -539,10 +546,12 @@ public class PlayerShooting : MonoBehaviour
         {
             isAnimInProgress = true;
             InvokeRepeating("SingleFireRecoil", 0f, currentGun.fireRate / (singleFireRecoilDegree * 2));
-            //StartCoroutine(SingleFireRecoil(0, 10));
         }
     }
 
+    /// <summary>
+    /// Rotates gun on the x axis up to a certain degree (singleFireRecoilDegree)
+    /// </summary>
     private void SingleFireRecoil()
     {
         // Prevents reload animation and recoil animation from happening at the same time
@@ -583,6 +592,9 @@ public class PlayerShooting : MonoBehaviour
         gunPosition.localPosition = Vector3.zero;
     }
 
+    /// <summary>
+    /// Instantiates grenade at GrenadeFirePoint and adds a forward force
+    /// </summary>
     private void ThrowGrenade()
     {
         CurrentGrenades--;

@@ -34,12 +34,15 @@ public class Grenade : MonoBehaviour
     {
         explosionCollider.transform.localScale *= 1.1f;
         if(explosionCollider.transform.localScale.x > explosionColliderMaxRadius)
+        {
+            CancelInvoke("StartExplosion");
             StartCoroutine(SelfDestruct());
+        }
     }
 
     private IEnumerator SelfDestruct()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(.25f);
         Destroy(explosionCollider);
         Destroy(gameObject);
     }

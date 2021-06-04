@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using UnityEngine.Rendering.PostProcessing;
 
 public class GameMenu : MainMenu
@@ -49,10 +50,15 @@ public class GameMenu : MainMenu
         playerShooting.enabled = true;
     }
 
+    public void ExitToMainMenu()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1 );
+    }
+
     public void SetSliderGameUI()
     {
-        gameMenuMusicSlider.value = PlayerPrefs.GetFloat("MusicVolume");
-        gameMenuSoundEffectSlider.value = PlayerPrefs.GetFloat("SoundEffectsVolume");
+        gameMenuMusicSlider.value = PlayerPrefs.GetFloat("MusicVolume", .75f);
+        gameMenuSoundEffectSlider.value = PlayerPrefs.GetFloat("SoundEffectsVolume", .75f);
         gameMenuHueShiftSlider.value = PlayerPrefs.GetFloat("HueShift", 0);
         gameMenuBloomSlider.value = PlayerPrefs.GetFloat("BloomIntensity", 30);
     }

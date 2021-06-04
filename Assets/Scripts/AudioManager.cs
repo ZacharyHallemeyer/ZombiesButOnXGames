@@ -28,6 +28,8 @@ public class AudioManager : MonoBehaviour
 
     private void Awake()
     {
+        DontDestroyOnLoad(gameObject);
+
         if (PlayerPrefs.GetFloat("SoundEffectsVolume", 100) == 100)
             PlayerPrefs.SetFloat("SoundEffectsVolume", .75f);        
         if (PlayerPrefs.GetFloat("MusicVolume", 100) == 100)
@@ -42,7 +44,6 @@ public class AudioManager : MonoBehaviour
         }
 
 
-        DontDestroyOnLoad(gameObject);
 
         foreach(Sound s in sounds)
         {
@@ -78,7 +79,7 @@ public class AudioManager : MonoBehaviour
         foreach(Sound s in sounds)
         {
             if (!(s.name.Substring(0, 3).Equals("Gun")))
-                s.source.volume = PlayerPrefs.GetFloat("MusicVolume");
+                s.source.volume = PlayerPrefs.GetFloat("MusicVolume", .75f);
         }
     }    
     
@@ -87,13 +88,13 @@ public class AudioManager : MonoBehaviour
         foreach (Sound s in sounds)
         {
             if ( s.name.Substring(0, 3).Equals("Gun") )
-                s.source.volume = PlayerPrefs.GetFloat("SoundEffectsVolume");
+                s.source.volume = PlayerPrefs.GetFloat("SoundEffectsVolume", .75f);
         }
 
-        enemyPefab.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("SoundEffectsVolume");
+        enemyPefab.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("SoundEffectsVolume", .75f);
         foreach(GameObject enemy in GameObject.FindGameObjectsWithTag("Enemy"))
         {
-            enemy.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("SoundEffectsVolume");
+            enemy.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("SoundEffectsVolume", .75f);
         }
     }
 }

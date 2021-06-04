@@ -53,6 +53,25 @@ public class EnemyMovement : MonoBehaviour
         Movement();
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        switch (collision.gameObject.tag)
+        {
+            case "Enemy":
+                Knockback(knockbackForce, collision.transform);
+                break;
+            case "Player":
+                Knockback(knockbackForce, collision.transform);
+                break;
+            case "ShockWave":
+                Knockback(shockWaveForce, collision.transform);
+                break;
+
+            default:
+                break;
+        }
+    }
+
     /// <summary>
     /// Check if enemy is grounded or not
     /// </summary>
@@ -70,6 +89,7 @@ public class EnemyMovement : MonoBehaviour
         transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0f, desiredRotation.eulerAngles.y, 0f ), Time.deltaTime * 10f);
     }
     
+
     private void Movement()
     {
         Vector3 direction;
@@ -124,21 +144,6 @@ public class EnemyMovement : MonoBehaviour
     }
 
     /// <summary>
-    /// Applies force backwards
-    /// </summary>
-    /// <param name="knockbackForce"></param>
-    private void Knockback(float knockbackForce, Transform collider)
-    {
-        if (collider.GetComponent<Rigidbody>() != null)
-            rb.velocity = collider.GetComponent<Rigidbody>().velocity;
-        else
-            rb.velocity = Vector3.zero;
-
-        rb.AddForce(-(collider.position - transform.position).normalized 
-                     * knockbackForce * Time.deltaTime, ForceMode.Impulse);
-    }
-    
-    /// <summary>
     /// Returns true if player is within 'range'(float) distance of player with no regard to y position
     /// </summary>
     private bool InRange()
@@ -172,46 +177,22 @@ public class EnemyMovement : MonoBehaviour
         return false;
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        switch (collision.gameObject.tag)
-        {
-            case "Enemy":
-                Knockback(knockbackForce, collision.transform);
-                break;
-            case "Player":
-                Knockback(knockbackForce, collision.transform);
-                break;
-            case "ShockWave":
-                Knockback(shockWaveForce, collision.transform);
-                break;
-            case "Explosion":
-                //Knockback(explosionForce, collision.transform);
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    private float FindRelativeHeight(Transform target)
-    {
-        return target.position.y + target.localScale.y / 2 - transform.position.y + transform.localScale.y / 2;
-    }
-
     /// <summary>
-    /// Returns the jump velocity required to jump to a certain y position
+    /// Applies force backwards
     /// </summary>
-    /// <param name="relativeJumpHeight"> gameobject.transform.position.y - transfrom.position.y </param>
-    private float CaclulateJumpVelocity(float relativeJumpHeight)
+    /// <param name="knockbackForce"></param>
+    private void Knockback(float knockbackForce, Transform collider)
     {
-        // Prevents error in sqrt() a negative number 
-        // This can occur because enemy waits a specified time before jumping
-        // (player can be below enemy at that point)
-        if (relativeJumpHeight < 0) return 0f;
+        if (collider.GetComponent<Rigidbody>() != null)
+            rb.velocity = collider.GetComponent<Rigidbody>().velocity;
+        else
+            rb.velocity = Vector3.zero;
 
-        return Mathf.Sqrt(-1f * Physics.gravity.y * relativeJumpHeight);
+        rb.AddForce(-(collider.position - transform.position).normalized 
+                     * knockbackForce * Time.deltaTime, ForceMode.Impulse);
     }
+
+    // JUMP ===================================================================
 
     /// <summary>
     /// applies a y velocity to enemy
@@ -228,6 +209,24 @@ public class EnemyMovement : MonoBehaviour
         StartCoroutine(TurnOffJumpActiveFlag());
     }
 
+    /// <summary>
+    /// Returns the jump velocity required to jump to a certain y position
+    /// </summary>
+    /// <param name="relativeJumpHeight"> gameobject.transform.position.y - transfrom.position.y </param>
+    private float FindRelativeHeight(Transform target)
+    {
+        return target.position.y + target.localScale.y / 2 - transform.position.y + transform.localScale.y / 2;
+    }
+
+    private float CaclulateJumpVelocity(float relativeJumpHeight)
+    {
+        // Prevents error in sqrt() a negative number 
+        // This can occur because enemy waits a specified time before jumping
+        // (player can be below enemy at that point)
+        if (relativeJumpHeight < 0) return 0f;
+
+        return Mathf.Sqrt(-1f * Physics.gravity.y * relativeJumpHeight);
+    }
 
     /// <summary>
     /// call jump function after 'timeToWait' amount of scaled seconds. Also calls compress and expand jump animations 
@@ -282,4 +281,6 @@ public class EnemyMovement : MonoBehaviour
         if (transform.localScale.y >= enemyStats.originalScale.y)
             CancelInvoke("ExpandJumpAnimation");
     }
+
+    // END OF JUMP ======================================================
 }
