@@ -280,7 +280,7 @@ public class InteractableObjects : MonoBehaviour
     // UPGRADE DAMAGE ==================================================
 
     /// <summary>
-    /// Increases damage of current gun by 1.4 of its current damage
+    /// Increases damage of current gun by 1/2 of its current damage
     /// </summary>
     public void UpgradeDamage()
     {
@@ -290,7 +290,7 @@ public class InteractableObjects : MonoBehaviour
         {
             if(playerShooting.currentGun.name == key)
             {
-                playerStats.allGunInformation[key].damage += playerStats.allGunInformation[key].damage / 4;
+                playerStats.allGunInformation[key].damage += playerStats.allGunInformation[key].damage / 2;
             }
         }
         StartCoroutine(TurnOnInteractable(currentObject));

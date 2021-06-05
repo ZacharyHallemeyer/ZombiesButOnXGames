@@ -30,7 +30,7 @@ public class PlayerItems : MonoBehaviour
     public void StartShockWave()
     {
         // Move to player 
-        audioManager.Play("GunShockWave");
+        audioManager.Play("ShockWave");
         shockWaveParticle.Play();
         shockWave.transform.position = transform.position;
         shockWave.transform.localScale = Vector3.one;

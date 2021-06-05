@@ -68,7 +68,7 @@ MonoBehaviour:
     pitch: 1
     looping: 0
     source: {fileID: 0}
-  - name: BackgroundMusic
+  - name: MusicBackground
     clip: {fileID: 8300000, guid: 43694484ddffc0e4b8cfb43c7e4a8cc8, type: 3}
     volume: 0.25
     pitch: 1
@@ -80,8 +80,14 @@ MonoBehaviour:
     pitch: 1
     looping: 0
     source: {fileID: 0}
-  - name: GunShockWave
+  - name: ShockWave
     clip: {fileID: 8300000, guid: 879e8202a0eebb6419fe4200fb7da039, type: 3}
+    volume: 0.474
+    pitch: 1
+    looping: 0
+    source: {fileID: 0}
+  - name: PowerUp
+    clip: {fileID: 8300000, guid: 0c84e1ae65defa348b256b2c24c8381b, type: 3}
     volume: 0.474
     pitch: 1
     looping: 0

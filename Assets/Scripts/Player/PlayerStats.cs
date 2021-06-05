@@ -29,18 +29,22 @@ public class PlayerStats : MonoBehaviour
     // Components
     public Transform camPosition;
 
-    // Number variables
+    // Health
     private float maxHealth = 30;
     private float health;
-    private float timeSinceLastHit = 0f, timeToHeal = 3f, healingIncrement = .1f;
+    private float timeSinceLastHit = 0f, timeToHeal = 3f, healingIncrement = .1f, maxTimeInvincible = 1f;
     private bool healingFunctionActive = false;
 
+    // Player stats and Power up stats
     public int CurrentLives { get; set; } = 1;
     public int CurrentPoints { get; set; } = 0;
     public int TotalEnemiesKilled { get; set; } = 0;
+    public int PointMultiplier { get; set; } = 1;
+    private int killsToNextPowerUp = 20;
+
 
     public Vector3 spawnPosition;
-    // Environment generator uses this vector as to where to spawn shop room
+    // Environment generator script uses this vector as to where to spawn shop room
     public Vector3 shopSpawnPosition = new Vector3(0, -150, 0);
 
     // Scripts
@@ -48,6 +52,7 @@ public class PlayerStats : MonoBehaviour
     public PlayerShooting playerShooting;
     public GameMenu gameMenu;
     public WaveSpawner waveSpawner;
+    public GameManager gameManager;
 
     // UI
     public PlayerUIScript playerUI;
@@ -75,15 +80,13 @@ public class PlayerStats : MonoBehaviour
     /// </summary>
     private void Awake()
     {
+        if (gameManager == null)
+            gameManager = FindObjectOfType<GameManager>();
         if (waveSpawner == null)
             waveSpawner = FindObjectOfType<WaveSpawner>();
         spawnPosition = transform.position;
         InvokeRepeating("LifeCycle", 1f, 1f);
         health = maxHealth;
-
-        // TESTING
-        //CurrentPoints = 50000;
-        //pointUI.SetPointText(CurrentPoints);
     }
 
     private void Update()
@@ -95,6 +98,10 @@ public class PlayerStats : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Escape))
             gameMenu.PauseGame();
+
+        // TESTING
+        //if (Input.GetKeyDown(KeyCode.H))
+            //gameManager.SpawnPowerUp();
     }
 
     /// <summary>
@@ -173,6 +180,12 @@ public class PlayerStats : MonoBehaviour
 
     private void LifeCycle()
     {
+        if(TotalEnemiesKilled > killsToNextPowerUp)
+        {
+            gameManager.SpawnPowerUp();
+            killsToNextPowerUp += killsToNextPowerUp / 2;
+        }
+
         timeSinceLastHit += 1f;
         // Start healing player after a specified time after last time damage was taken
         // healingFunctionActive prevent mmultiple coroutines from occuring all at once
@@ -197,6 +210,9 @@ public class PlayerStats : MonoBehaviour
     /// <param name="damage">variable to be subtracted from player healht</param>
     public void TakeDamage(float damage)
     {
+        // Player can not be damaged until maxTimeInvicible amount of seconds
+        if (timeSinceLastHit < maxTimeInvincible) return;
+
         health -= damage;
         playerUI.ChangeHealthUI(health, maxHealth);
         timeSinceLastHit = 0f;
@@ -233,16 +249,70 @@ public class PlayerStats : MonoBehaviour
         if(playerData != null)
         {
             // minus 1 from current wave number because we want completed waves 
-            if(waveSpawner.waveNumber - 1 > playerData.highScoreWave)
-                playerData.highScoreWave = waveSpawner.waveNumber - 1;
-            if (CurrentPoints > playerData.highestPoints)
-                playerData.highestPoints = CurrentPoints;
-            Debug.Log("Save from old file");
-            SaveSystem.SavePlayerData(playerData.highScoreWave, TotalEnemiesKilled, playerData.highestPoints);
+            switch (PlayerPrefs.GetString("Difficulty"))
+            {
+                case "Easy":
+                    if (waveSpawner.waveNumber - 1 > playerData.easyHighScoreWave)
+                        playerData.easyHighScoreWave = waveSpawner.waveNumber - 1;
+                    if (CurrentPoints > playerData.easyHighestPoints)
+                        playerData.easyHighestPoints = CurrentPoints;
+                    playerData.easyTotalEnemiesKilled += TotalEnemiesKilled;
+
+                    break;
+                case "Hard":
+                    if (waveSpawner.waveNumber - 1 > playerData.hardHighScoreWave)
+                        playerData.hardHighScoreWave = waveSpawner.waveNumber - 1;
+                    if (CurrentPoints > playerData.hardHighestPoints)
+                        playerData.easyHighestPoints = CurrentPoints;
+                    playerData.hardTotalEnemiesKilled += TotalEnemiesKilled;
+
+                    break;
+                case "Insane":
+                    if (waveSpawner.waveNumber - 1 > playerData.insaneHighScoreWave)
+                        playerData.insaneHighScoreWave = waveSpawner.waveNumber - 1;
+                    if (CurrentPoints > playerData.easyHighestPoints)
+                        playerData.insaneHighestPoints = CurrentPoints;
+                    playerData.insaneTotalEnemiesKilled += TotalEnemiesKilled;
+
+                    break;
+                default:
+                    Debug.LogError("Difficulty not found");
+                    return;
+            }
+
+            SaveSystem.SavePlayerData(playerData);
         }
         // if no current data
         else
-            SaveSystem.SavePlayerData(waveSpawner.waveNumber, TotalEnemiesKilled, CurrentPoints);
+        {
+            // minus 1 from current wave number because we want completed waves 
+            switch (PlayerPrefs.GetString("Difficulty"))
+            {
+                case "Easy":
+                    playerData.easyHighScoreWave = waveSpawner.waveNumber - 1;
+                    playerData.easyHighestPoints = CurrentPoints;
+                    playerData.easyTotalEnemiesKilled = TotalEnemiesKilled;
+
+                    break;
+                case "Hard":
+                    playerData.hardHighScoreWave = waveSpawner.waveNumber - 1;
+                    playerData.hardHighestPoints = CurrentPoints;
+                    playerData.hardTotalEnemiesKilled = TotalEnemiesKilled;
+
+                    break;
+                case "Insane":
+                    playerData.insaneHighScoreWave = waveSpawner.waveNumber - 1;
+                    playerData.insaneHighestPoints = CurrentPoints;
+                    playerData.insaneTotalEnemiesKilled = TotalEnemiesKilled;
+
+                    break;
+                default:
+                    Debug.LogError("Difficulty not found");
+                    break;
+            }
+
+            SaveSystem.SavePlayerData(playerData);
+        }
 
         // Reload current scene
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -267,11 +337,20 @@ public class PlayerStats : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Changes the point value UI
+    /// Dependencies: PlayerUIScript class
+    /// </summary>
     public void ChangeInPointValue()
     {
         playerUI.SetPointText(CurrentPoints);
     }
 
+    /// <summary>
+    /// Sends an ray out 10 units forward relative to player camera and return true if a game object with layer 
+    /// 'Interactable' is hit by ray
+    /// </summary>
+    /// <returns></returns>
     public bool CheckForInteractableObject()
     {
         Ray ray = new Ray(transform.position, camPosition.forward);
@@ -280,6 +359,13 @@ public class PlayerStats : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// If CheckForInteractableObject returns true then this function should be called.
+    /// It handles both calling the UI functions as well as handling calling the correct functions if player 
+    /// desires to interact with said object. For instance, if player wishes to use mystery box, then this function will
+    /// call the correct functions to spawn a new 'random' weapon
+    /// Dependencies: InteractableObjects class
+    /// </summary>
     private void HandleInteractable()
     {
         if (interactableObjects == null)
@@ -408,5 +494,16 @@ public class PlayerStats : MonoBehaviour
             default:
                 break;
         }
+    }
+
+    /// <summary>
+    /// Activated from PowerUps class
+    /// </summary>
+    private void DeactivateDoublePoints()
+    {
+        PlayerStats playerStats = FindObjectOfType<PlayerStats>();
+        playerStats.PointMultiplier = 1;
+        Debug.Log("Player point multiplier: " + playerStats.PointMultiplier);
+        CancelInvoke("DeactivateDoublePoints");
     }
 }

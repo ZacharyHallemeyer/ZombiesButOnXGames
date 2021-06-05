@@ -50,7 +50,7 @@ public class EnemyStats : MonoBehaviour
     /// Dependencies: ShowDamage, Death
     public void TakeDamage(float damage)
     {
-        playerStats.CurrentPoints += (int) damage;
+        playerStats.CurrentPoints += (int) damage * playerStats.PointMultiplier;
         playerStats.ChangeInPointValue();
         health -= damage;
 
@@ -74,7 +74,7 @@ public class EnemyStats : MonoBehaviour
         showDamageActive = false;
     }
 
-    private void Death()
+    public void Death()
     {
         playerStats.TotalEnemiesKilled++;
         enemyMovement.enabled = false;

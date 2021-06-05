@@ -9,31 +9,12 @@ public static class SaveSystem
     /// <summary>
     /// Save player data
     /// </summary>
-    public static void SavePlayerData(int highScore, int enemiesKilled, int highestPoints)
+    public static void SavePlayerData(PlayerData playerData)
     {
         BinaryFormatter formatter = new BinaryFormatter();
         FileStream fileStream;
-        PlayerData playerData = new PlayerData(0, 0, 0);
 
-        Debug.Log(path);
-
-        if (File.Exists(path))
-        {
-            fileStream = new FileStream(path, FileMode.Open);
-
-            playerData = formatter.Deserialize(fileStream) as PlayerData;
-            playerData.highScoreWave = highScore;
-            playerData.totalEnemiesKilled += enemiesKilled;
-            playerData.highestPoints = highestPoints;
-            Debug.Log("old file");
-        }
-        else
-        {
-            fileStream = new FileStream(path, FileMode.Create);
-            playerData = new PlayerData(highScore, enemiesKilled, highestPoints);
-            Debug.Log("new file");
-        }
-
+        fileStream = new FileStream(path, FileMode.Create);
 
         formatter.Serialize(fileStream, playerData);
         fileStream.Close();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -11,7 +12,7 @@ public class AudioManager : MonoBehaviour
         public string name;
         public AudioClip clip;
 
-        [Range(0f ,1f)]
+        [Range(0f, 1f)]
         public float volume;
         [Range(.1f, 3f)]
         public float pitch;
@@ -30,11 +31,6 @@ public class AudioManager : MonoBehaviour
     {
         DontDestroyOnLoad(gameObject);
 
-        if (PlayerPrefs.GetFloat("SoundEffectsVolume", 100) == 100)
-            PlayerPrefs.SetFloat("SoundEffectsVolume", .75f);        
-        if (PlayerPrefs.GetFloat("MusicVolume", 100) == 100)
-            PlayerPrefs.SetFloat("MusicVolume", .75f);
-
         if (instance == null)
             instance = this;
         else
@@ -43,27 +39,32 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
+        if (PlayerPrefs.GetFloat("SoundEffectsVolume", 100) == 100)
+            PlayerPrefs.SetFloat("SoundEffectsVolume", .75f);
+        if (PlayerPrefs.GetFloat("MusicVolume", 100) == 100)
+            PlayerPrefs.SetFloat("MusicVolume", .75f);
 
-
-        foreach(Sound s in sounds)
+        foreach (Sound s in sounds)
         {
             s.source = gameObject.AddComponent<AudioSource>();
             s.source.clip = s.clip;
 
-            if(s.name.Substring(0,3).Equals("Gun"))
+            if (s.name.Substring(0, 3).Equals("Gun"))
                 s.source.volume = PlayerPrefs.GetFloat("SoundEffectsVolume");
             else
                 s.source.volume = PlayerPrefs.GetFloat("MusicVolume");
 
-            
+
             s.source.pitch = s.pitch;
             s.source.loop = s.looping;
         }
+        SetMusicVolume();
+        SetSoundEffectVolume();
     }
 
     private void Start()
     {
-        Play("BackgroundMusic");
+        Play("MusicBackground");
     }
 
     public void Play(string name)
@@ -74,20 +75,25 @@ public class AudioManager : MonoBehaviour
         s.source.Play();
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void SetMusicVolume()
     {
-        foreach(Sound s in sounds)
+        foreach (Sound s in sounds)
         {
-            if (!(s.name.Substring(0, 3).Equals("Gun")))
+            if (s.source == null) return;
+            if (s.name.Substring(0, 5).Equals("Music"))
                 s.source.volume = PlayerPrefs.GetFloat("MusicVolume", .75f);
         }
-    }    
-    
+    }
+
     public void SetSoundEffectVolume()
     {
         foreach (Sound s in sounds)
         {
-            if ( s.name.Substring(0, 3).Equals("Gun") )
+            if (s.source == null) return;
+            if ( !(s.name.Substring(0, 5).Equals("Music")) )
                 s.source.volume = PlayerPrefs.GetFloat("SoundEffectsVolume", .75f);
         }
 

@@ -72,7 +72,7 @@ public class WaveSpawner : MonoBehaviour
     /// <summary>
     /// Returns true if game object with tag "Enemy" is in the scene
     /// </summary>
-    private bool IsEnemyAlive()
+    public bool IsEnemyAlive()
     {
         if (GameObject.FindGameObjectWithTag("Enemy") == null)
             return false;
@@ -158,10 +158,10 @@ public class WaveSpawner : MonoBehaviour
         {
             wave = new Wave
             {
-                health = 70 + waveNumber * 2,
+                health = 70 + waveNumber * 3,
                 count = 7 + waveNumber * 2,
                 speedForce = 3000 + waveNumber * 100,
-                maxSpeed = 20 + waveNumber,
+                maxSpeed = 20 + waveNumber * 2,
                 rate = 1f - waveNumber / 100,
             };
         }

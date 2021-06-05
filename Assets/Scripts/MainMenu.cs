@@ -17,12 +17,12 @@ public class MainMenu : MonoBehaviour
         audioManager = FindObjectOfType<AudioManager>();
     }
 
-    public virtual void SetSliderMainUI()
+    public virtual void SetSliderUI()
     {
-        musicSlider.value = PlayerPrefs.GetFloat("MusicVolume", .75f);
-        soundEffectSlider.value = PlayerPrefs.GetFloat("SoundEffectsVolume", .75f);
-        hueShiftSlider.value = PlayerPrefs.GetFloat("HueShift", 0);
-        bloomSlider.value = PlayerPrefs.GetFloat("BloomIntensity", 30);
+        musicSlider.value = PlayerPrefs.GetFloat("MusicVolume");
+        soundEffectSlider.value = PlayerPrefs.GetFloat("SoundEffectsVolume");
+        hueShiftSlider.value = PlayerPrefs.GetFloat("HueShift");
+        bloomSlider.value = PlayerPrefs.GetFloat("BloomIntensity");
     }
 
     public void SetEasyMode()

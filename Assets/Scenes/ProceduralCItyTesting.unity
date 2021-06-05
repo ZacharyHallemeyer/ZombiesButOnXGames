@@ -507,6 +507,17 @@ MonoBehaviour:
   sunRadiusMin: 5
   sunRadiusMax: 10
   playerStats: {fileID: 185604898}
+  powerUpSpawnPositions:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
 --- !u!4 &1975490856
 Transform:
   m_ObjectHideFlags: 0
@@ -560,7 +571,12 @@ MonoBehaviour:
   shopRoom: {fileID: 491867287}
   playerStats: {fileID: 185604898}
   loadingScreen: {fileID: 795066216}
+  environment: {fileID: 1975490855}
   playerShopedSpawnedThisWave: 0
+  powerUps:
+  - {fileID: 6120000405091226361, guid: 6f48e24876a36b542ab00b1ce24a1cdd, type: 3}
+  - {fileID: 6980622319752740286, guid: bb447a840411d3a408ccf0fc0b3aa672, type: 3}
+  - {fileID: 8070969225702093319, guid: 5a3e1c7a650cd3d43b318e44b31a287e, type: 3}
 --- !u!114 &1995759812 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 9168582717047525468, guid: 107db451d563edc409a54e382f26c696,

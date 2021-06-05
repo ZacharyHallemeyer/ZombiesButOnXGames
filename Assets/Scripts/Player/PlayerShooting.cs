@@ -66,7 +66,6 @@ public class PlayerShooting : MonoBehaviour
 
     // Grenade
     public int CurrentGrenades { get; set; } = 5;
-    //public int startGrenades = 5;
     public Transform grenadeFirePoint;
     public GameObject grenadePrefab;
     public int grenadeThrowForce;
@@ -77,8 +76,6 @@ public class PlayerShooting : MonoBehaviour
     
     private void Start()
     {
-        audioManager = FindObjectOfType<AudioManager>();
-
         // Set up items and grenades 
         playerUI.SetGrenadeText(CurrentGrenades);
         playerUI.SetShockWaveText(CurrentShockWaves);
@@ -107,8 +104,21 @@ public class PlayerShooting : MonoBehaviour
         timeLeftToGrapple = maxGrappleTime;
         playerUI.SetMaxGrapple(maxGrappleTime);
         lineRender = GetComponent<LineRenderer>();
+
+        StartCoroutine(SetAudioManager());
     }
-    
+
+    /// <summary>
+    /// Call to set audio manager. This prevents player from referencing a null instance of audio manager
+    /// when changing scenes (AudioManager is set to not destroy on load)
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator SetAudioManager()
+    {
+        yield return new WaitForEndOfFrame();
+        audioManager = FindObjectOfType<AudioManager>();
+    }
+
     private void Update()
     {
         // Handle grapple
@@ -159,6 +169,7 @@ public class PlayerShooting : MonoBehaviour
             else if (currentGun.currentAmmo < currentGun.magSize && Input.GetKeyDown(KeyCode.R) && currentGun.reserveAmmo > 0)
             {
                 audioManager.Play("GunReload");
+                isAnimInProgress = true;
                 InvokeRepeating("Reload", 0, currentGun.reloadTime / 360f);
             }
 
@@ -304,6 +315,7 @@ public class PlayerShooting : MonoBehaviour
             if(currentGun.reserveAmmo > 0)
             {
                 audioManager.Play("GunReload");
+                isAnimInProgress = true;
                 InvokeRepeating("Reload", 0, currentGun.reloadTime / 360f);
             }
             CorrectGunPosition();
@@ -346,6 +358,7 @@ public class PlayerShooting : MonoBehaviour
             if (currentGun.reserveAmmo > 0)
             {
                 audioManager.Play("GunReload");
+                isAnimInProgress = true;
                 InvokeRepeating("Reload", 0, currentGun.reloadTime / 360f);
             }
             CorrectGunPosition();

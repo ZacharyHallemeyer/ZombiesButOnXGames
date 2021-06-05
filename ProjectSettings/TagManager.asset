@@ -16,6 +16,9 @@ TagManager:
   - ShockWave
   - Explosion
   - GrenadeIncrease
+  - DoublePoints
+  - MaxAmmo
+  - Nuke
   layers:
   - Default
   - TransparentFX

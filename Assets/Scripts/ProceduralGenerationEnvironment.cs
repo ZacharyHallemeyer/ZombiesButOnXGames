@@ -47,6 +47,9 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
     // Scripts
     public PlayerStats playerStats;
 
+    // SpawnPoints
+    public Vector3[] powerUpSpawnPositions = new Vector3[10];
+
     // Start is called before the first frame update
     void Start()
     {
@@ -146,6 +149,9 @@ public class ProceduralGenerationEnvironment : MonoBehaviour
                                            mysteryBoxPrefab.transform.rotation);
             currentBuilding.transform.parent = environmentContainer.transform;
         }
+        // Fill power up spawn locations (5 units above the first 10 buildings spawned)
+        if(counter < 9 )
+            powerUpSpawnPositions[counter] = new Vector3(xCoord, ySize + 5f, zCoord);
 
         StartCoroutine(SpawnBuilding(counter + 1));
     }

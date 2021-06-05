@@ -28,7 +28,7 @@ public class GameMenu : MainMenu
         SetBloomBasedOnPlayerPref();
         SetHueShiftBasedOnPlayerPref();
 
-        SetSliderGameUI();
+        SetSliderUI();
     }
 
     public void PauseGame()
@@ -55,7 +55,7 @@ public class GameMenu : MainMenu
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1 );
     }
 
-    public void SetSliderGameUI()
+    public override void SetSliderUI()
     {
         gameMenuMusicSlider.value = PlayerPrefs.GetFloat("MusicVolume", .75f);
         gameMenuSoundEffectSlider.value = PlayerPrefs.GetFloat("SoundEffectsVolume", .75f);
