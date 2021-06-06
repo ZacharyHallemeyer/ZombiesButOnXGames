@@ -7,23 +7,7 @@ public class MenuStats : MonoBehaviour
     public TextMeshProUGUI highestWaveText;
     public TextMeshProUGUI enemiesKilledText;
     public TextMeshProUGUI highestPointsText;
-
-    private void Awake()
-    {
-        /*PlayerData playerData = SaveSystem.LoadPlayerData();
-        if(playerData != null)
-        {
-            highestWaveText.text = "HIGHEST WAVE: " + playerData.highScoreWave;
-            enemiesKilledText.text = "TOTAL ENEMIES KILLED: " + playerData.totalEnemiesKilled;
-            highestPointsText.text = "HIGHEST POINTS: " + playerData.highestPoints;
-        }
-        else
-        {
-            highestWaveText.text = "HIGHEST WAVE: 0";
-            enemiesKilledText.text = "TOTAL ENEMIES KILLED: 0";
-            highestPointsText.text = "HIGHEST POINTS: 0";
-        }*/
-    }
+    public TextMeshProUGUI highestTimeText;
 
     public void UpdateEasyStatsBoard()
     {
@@ -34,12 +18,14 @@ public class MenuStats : MonoBehaviour
             highestWaveText.text = "HIGHEST WAVE: " + playerData.easyHighScoreWave;
             enemiesKilledText.text = "TOTAL ENEMIES KILLED: " + playerData.easyTotalEnemiesKilled;
             highestPointsText.text = "HIGHEST POINTS: " + playerData.easyHighestPoints;
+            highestTimeText.text = "HIGHEST TIME: " + playerData.easyHighestTimeSurvived;
         }
         else
         {
             highestWaveText.text = "HIGHEST WAVE: 0";
             enemiesKilledText.text = "TOTAL ENEMIES KILLED: 0";
             highestPointsText.text = "HIGHEST POINTS: 0";
+            highestTimeText.text = "HIGHEST TIME: 0";
         }
     }
 
@@ -52,12 +38,14 @@ public class MenuStats : MonoBehaviour
             highestWaveText.text = "HIGHEST WAVE: " + playerData.hardHighScoreWave;
             enemiesKilledText.text = "TOTAL ENEMIES KILLED: " + playerData.hardTotalEnemiesKilled;
             highestPointsText.text = "HIGHEST POINTS: " + playerData.hardHighestPoints;
+            highestTimeText.text = "HIGHEST TIME: " + playerData.hardHighestTimeSurvived;
         }
         else
         {
             highestWaveText.text = "HIGHEST WAVE: 0";
             enemiesKilledText.text = "TOTAL ENEMIES KILLED: 0";
             highestPointsText.text = "HIGHEST POINTS: 0";
+            highestTimeText.text = "HIGHEST TIME: 0";
         }
     }
 
@@ -70,12 +58,14 @@ public class MenuStats : MonoBehaviour
             highestWaveText.text = "HIGHEST WAVE: " + playerData.insaneHighScoreWave;
             enemiesKilledText.text = "TOTAL ENEMIES KILLED: " + playerData.insaneTotalEnemiesKilled;
             highestPointsText.text = "HIGHEST POINTS: " + playerData.insaneHighestPoints;
+            highestTimeText.text = "HIGHEST TIME: " + playerData.insaneHighestTimeSurvived;
         }
         else
         {
             highestWaveText.text = "HIGHEST WAVE: 0";
             enemiesKilledText.text = "TOTAL ENEMIES KILLED: 0";
             highestPointsText.text = "HIGHEST POINTS: 0";
+            highestTimeText.text = "HIGHEST TIME: 0";
         }
     }
 }

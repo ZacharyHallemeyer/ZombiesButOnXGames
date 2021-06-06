@@ -28,25 +28,30 @@ public class MainMenu : MonoBehaviour
     public void SetEasyMode()
     {
         PlayerPrefs.SetString("Difficulty", "Easy");
-        PlayGame();
+        //PlayGame();
     }
 
     public void SetHardMode()
     {
         PlayerPrefs.SetString("Difficulty", "Hard");
-        PlayGame();
-    }    
-    
+        //PlayGame();
+    }
+
     public void SetInsaneMode()
     {
         PlayerPrefs.SetString("Difficulty", "Insane");
-        PlayGame();
+        //PlayGame();
     }
 
 
-    public void PlayGame()
+    public void PlayWaveMode()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        SceneManager.LoadScene("WaveMode");
+    }
+
+    public void PlaySurvivalMode()
+    {
+        SceneManager.LoadScene("SurvivalMode");
     }
 
     public void QuitGame()

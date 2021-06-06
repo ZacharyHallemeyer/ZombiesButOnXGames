@@ -8,7 +8,8 @@ public class PlayerMovement : Movement
     //Assingables
     public Transform playerCam;
     public Transform orientation;
-    public PlayerShooting playerShooting;
+    //public PlayerShooting playerShooting;
+    public ExperimentalPlayerShooting playerShooting;
 
     //Other
     private Rigidbody rb;
@@ -166,9 +167,7 @@ public class PlayerMovement : Movement
 
         // Prevents guns and other such objects from expanding larger than intended
         foreach (Transform child in gameObject.transform)
-        {
             child.localScale = crouchScale;
-        }
 
         CancelInvoke("StartCrouchAnimation");
         InvokeRepeating("StopCrouchAnimation", 0, .1f / crouchGunDegree);

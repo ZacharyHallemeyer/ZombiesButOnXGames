@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
 
 public class PlayerStats : MonoBehaviour
 {
@@ -36,7 +34,7 @@ public class PlayerStats : MonoBehaviour
     private bool healingFunctionActive = false;
 
     // Player stats and Power up stats
-    public int CurrentLives { get; set; } = 1;
+    public int CurrentLives { get; set; } = 2;
     public int CurrentPoints { get; set; } = 0;
     public int TotalEnemiesKilled { get; set; } = 0;
     public int PointMultiplier { get; set; } = 1;
@@ -49,7 +47,8 @@ public class PlayerStats : MonoBehaviour
 
     // Scripts
     public EnemyStats enemyStats;
-    public PlayerShooting playerShooting;
+    //public PlayerShooting playerShooting;
+    public ExperimentalPlayerShooting playerShooting;
     public GameMenu gameMenu;
     public WaveSpawner waveSpawner;
     public GameManager gameManager;
@@ -85,12 +84,23 @@ public class PlayerStats : MonoBehaviour
         if (waveSpawner == null)
             waveSpawner = FindObjectOfType<WaveSpawner>();
         spawnPosition = transform.position;
-        InvokeRepeating("LifeCycle", 1f, 1f);
         health = maxHealth;
     }
 
     private void Update()
     {
+        timeSinceLastHit += Time.deltaTime;
+        // Start healing player after a specified time after last time damage was taken
+        // healingFunctionActive prevent mmultiple coroutines from occuring all at once
+        if (health < maxHealth && timeSinceLastHit > timeToHeal && !healingFunctionActive)
+            StartCoroutine(HealOverTime());
+
+        if (TotalEnemiesKilled > killsToNextPowerUp)
+        {
+            gameManager.SpawnPowerUp();
+            killsToNextPowerUp += killsToNextPowerUp / 2;
+        }
+
         if (CheckForInteractableObject())
         {
             shouldInteract = Input.GetKeyDown(KeyCode.E);
@@ -98,10 +108,6 @@ public class PlayerStats : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Escape))
             gameMenu.PauseGame();
-
-        // TESTING
-        //if (Input.GetKeyDown(KeyCode.H))
-            //gameManager.SpawnPowerUp();
     }
 
     /// <summary>
@@ -178,21 +184,6 @@ public class PlayerStats : MonoBehaviour
         };
     }
 
-    private void LifeCycle()
-    {
-        if(TotalEnemiesKilled > killsToNextPowerUp)
-        {
-            gameManager.SpawnPowerUp();
-            killsToNextPowerUp += killsToNextPowerUp / 2;
-        }
-
-        timeSinceLastHit += 1f;
-        // Start healing player after a specified time after last time damage was taken
-        // healingFunctionActive prevent mmultiple coroutines from occuring all at once
-        if (health < maxHealth && timeSinceLastHit > timeToHeal && !healingFunctionActive)
-            StartCoroutine(HealOverTime());
-    }
-
     private void OnCollisionEnter(Collision collision)
     {
         // Take damage if collision was an enemy
@@ -263,7 +254,7 @@ public class PlayerStats : MonoBehaviour
                     if (waveSpawner.waveNumber - 1 > playerData.hardHighScoreWave)
                         playerData.hardHighScoreWave = waveSpawner.waveNumber - 1;
                     if (CurrentPoints > playerData.hardHighestPoints)
-                        playerData.easyHighestPoints = CurrentPoints;
+                        playerData.hardHighestPoints = CurrentPoints;
                     playerData.hardTotalEnemiesKilled += TotalEnemiesKilled;
 
                     break;

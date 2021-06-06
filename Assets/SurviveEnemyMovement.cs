@@ -1,8 +1,7 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyMovement : MonoBehaviour
+public class SurviveEnemyMovement : MonoBehaviour
 {
     // Components
     public Rigidbody rb;
@@ -11,11 +10,11 @@ public class EnemyMovement : MonoBehaviour
     public Transform obstacleCheck;
 
     // Scripts
-    public EnemyStats enemyStats;
+    public SurviveEnemyStats enemyStats;
 
     // Movement
     public float maxSpeed = 40f;
-    
+
     public float MoveSpeed { get; set; } = 2000;
     public int randomjumpMultiplier = 5;
 
@@ -31,15 +30,27 @@ public class EnemyMovement : MonoBehaviour
     public LayerMask whatIsObstacle;
     public RaycastHit hit;
 
-    // Knockback variables
-    private int knockbackForce = 1500;
-    private float shockWaveForce = 5000;
-
-
     private void Awake()
     {
+        switch (PlayerPrefs.GetString("Difficulty"))
+        {
+            case "Easy":
+                maxSpeed = 30f;
+                MoveSpeed = 1500;
+                break;
+            case "Hard":
+                maxSpeed = 40f;
+                MoveSpeed = 2000;
+                break;
+            case "Insane":
+                maxSpeed = 50f;
+                MoveSpeed = 3000;
+                break;
+            default:
+                break;
+        }
+
         player = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
-        InvokeRepeating("RandomMovement", Random.Range(.1f, 10f), 2.5f);
     }
 
     void Update()
@@ -48,11 +59,11 @@ public class EnemyMovement : MonoBehaviour
         CheckStatus();
 
         // Prevents enemy from being stuck
-        if (rb.velocity.magnitude < 2)
+        if(rb.velocity.magnitude < 2)
             timeMotionless += Time.deltaTime;
         else
             timeMotionless = 0;
-        if (timeMotionless > maxTimeMotionless)
+        if(timeMotionless > maxTimeMotionless)
         {
             timeMotionless = 0;
             Knockback();
@@ -62,25 +73,6 @@ public class EnemyMovement : MonoBehaviour
     private void FixedUpdate()
     {
         Movement();
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        switch (collision.gameObject.tag)
-        {
-            case "Enemy":
-                Knockback(knockbackForce, collision.transform);
-                break;
-            case "Player":
-                Knockback(knockbackForce, collision.transform);
-                break;
-            case "ShockWave":
-                Knockback(shockWaveForce, collision.transform);
-                break;
-
-            default:
-                break;
-        }
     }
 
     /// <summary>
@@ -97,9 +89,9 @@ public class EnemyMovement : MonoBehaviour
     private void Look()
     {
         Quaternion desiredRotation = Quaternion.LookRotation(player.position - transform.position);
-        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0f, desiredRotation.eulerAngles.y, 0f ), Time.deltaTime * 10f);
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0f, desiredRotation.eulerAngles.y, 0f), Time.deltaTime * 10f);
     }
-    
+
 
     private void Movement()
     {
@@ -107,11 +99,11 @@ public class EnemyMovement : MonoBehaviour
         // if there is an obstacle between enemy and player then jump over it
         if (IsObstacle())
         {
-            if (!jumpActive && IsPlayerInCurrentDirection(0f) && rb.velocity.y < 10f)
-                Jump( jumpMultiplier * CaclulateJumpVelocity( FindRelativeHeight(hit.transform)));
-        }   
+            if (!jumpActive && IsPlayerInCurrentDirection(0f)  && rb.velocity.y < 10f)
+                Jump(jumpMultiplier * CaclulateJumpVelocity(FindRelativeHeight(hit.transform)));
+        }
         //direction = (player.position - transform.position);
-        direction = (new Vector3(player.position.x, 0, player.position.z) 
+        direction = (new Vector3(player.position.x, 0, player.position.z)
                      - new Vector3(transform.position.x, 0, transform.position.z));
 
 
@@ -122,24 +114,16 @@ public class EnemyMovement : MonoBehaviour
             StartCoroutine(WaitAndJump(jumpMultiplier, .2f, player));
 
         // Check if enemy is going faster than max speed return so enemy does not recieve more force
-        if ( new Vector3(rb.velocity.x, 0, rb.velocity.z).magnitude  > maxSpeed )
+        if (new Vector3(rb.velocity.x, 0, rb.velocity.z).magnitude > maxSpeed)
             return;
+
+        if(!IsPlayerInCurrentDirection(0f) && !jumpActive)
+        {
+            rb.velocity = new Vector3(direction.normalized.x, rb.velocity.y, direction.normalized.z);
+        }
 
         // Add force in direction of player
         rb.AddForce(direction.normalized * MoveSpeed * Time.deltaTime);
-    }
-
-    
-    private void RandomMovement()
-    {
-        if (!InRange())
-            return;
-        if(Random.Range(0, 5) == 0)
-        {
-            if (grounded && !jumpActive)
-                // Twice as high as current player position
-                StartCoroutine(WaitAndJump(2, .2f, player));
-        }
     }
 
     /// <summary>
@@ -149,7 +133,7 @@ public class EnemyMovement : MonoBehaviour
     private bool IsPlayerInCurrentDirection(float threshold)
     {
         //Debug.Log(Vector3.Dot(transform.forward.normalized, rb.velocity.normalized));
-        if(Vector3.Dot(transform.forward.normalized, rb.velocity.normalized) > threshold)
+        if (Vector3.Dot(transform.forward.normalized, rb.velocity.normalized) > threshold)
             return true;
         return false;
     }
@@ -190,21 +174,6 @@ public class EnemyMovement : MonoBehaviour
 
     /// <summary>
     /// Applies force backwards
-    /// </summary>
-    /// <param name="knockbackForce"></param>
-    private void Knockback(float knockbackForce, Transform collider)
-    {
-        if (collider.GetComponent<Rigidbody>() != null)
-            rb.velocity = collider.GetComponent<Rigidbody>().velocity;
-        else
-            rb.velocity = Vector3.zero;
-
-        rb.AddForce(-(collider.position - transform.position).normalized 
-                     * knockbackForce * Time.deltaTime, ForceMode.Impulse);
-    }
-
-    /// <summary>
-    /// Applies force backwards. This should only be called for if this gameobject is motionless for an extended amount of time
     /// </summary>
     private void Knockback()
     {
@@ -261,7 +230,7 @@ public class EnemyMovement : MonoBehaviour
         yield return new WaitForSeconds(timeToWait);
         // expands game object to its original height around 3/4 of timeToWait
         InvokeRepeating("ExpandJumpAnimation", 0f, timeToWait / 10f);
-        if(!jumpActive)
+        if (!jumpActive)
             Jump(jumpMultiplier * CaclulateJumpVelocity(FindRelativeHeight(target)));
 
     }
@@ -285,9 +254,9 @@ public class EnemyMovement : MonoBehaviour
     /// </summary>
     private void CompressJumpAnimation()
     {
-        transform.localScale =  new Vector3(transform.localScale.x, transform.localScale.y * .9f, transform.localScale.z) ;
+        transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y * .9f, transform.localScale.z);
         //transform.position = new Vector3(transform.position.x, transform.position.y * .9f, transform.position.z);
-        if (transform.localScale.y < enemyStats.originalScale.y/2)
+        if (transform.localScale.y < enemyStats.originalScale.y / 2)
             CancelInvoke("CompressJumpAnimation");
     }
 

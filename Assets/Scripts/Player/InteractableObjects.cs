@@ -120,73 +120,54 @@ public class InteractableObjects : MonoBehaviour
                     text.text = "Press E To Pick Up Weapon";
                 else
                     text.text = "Press E TO Purchase Weapon For " + mysteryBox.price + " Points";
-                if (hideUICoroutine == null)
-                    hideUICoroutine = StartCoroutine(HideUI());
                 break;
             case "UpgradeGrapple":
                 currentObject = upgradeGrapple;
                 text.text = "Press E to Purchase " + 1f + " More Seconds Of Grapple Time For " + upgradeGrapple.price + " Points";
-                if (hideUICoroutine == null)
-                    hideUICoroutine = StartCoroutine(HideUI());
                 break;
             case "UpgradeDamage":
                 currentObject = upgradeDamage;
                 text.text = "Press E to Purchase " + 1f + " More Damage For Current Gun For " + upgradeDamage.price + " Points";
-                if (hideUICoroutine == null)
-                    hideUICoroutine = StartCoroutine(HideUI());
                 break;
             case "ShockWaveIncrease":
                 currentObject = shockWaveIncrease;
                 text.text = "Press E to Purchase A Shock Wave Item For " + shockWaveIncrease.price + " Points";
-                if (hideUICoroutine == null)
-                    hideUICoroutine = StartCoroutine(HideUI());
                 break;
             case "ExtraLife":
                 currentObject = extraLife;
                 text.text = "Press E to Purchase An Extra Life For " + extraLife.price + " Points";
-                if (hideUICoroutine == null)
-                    hideUICoroutine = StartCoroutine(HideUI());
                 break;
             case "RefillAmmo":
                 currentObject = refillAmmo;
                 text.text = "Press E To Refill Ammo For " + refillAmmo.price + " Points";
-                if (hideUICoroutine == null)
-                    hideUICoroutine = StartCoroutine(HideUI());
                 break;
             case "GrenadeIncrease":
                 currentObject = grenadeIncrease;
                 text.text = "Press E To Purchase A Grenade For " + grenadeIncrease.price + " Points";
-                if (hideUICoroutine == null)
-                    hideUICoroutine = StartCoroutine(HideUI());
                 break;
             case "ExitShop":
                 text.text = "Press E To Exit Shop";
-                if (hideUICoroutine == null)
-                    hideUICoroutine = StartCoroutine(HideUI());
                 break;
             default:
-                break;
+                return;
         }
+
+        // Reset HideUI
+        CancelInvoke("HideUI");
+        InvokeRepeating("HideUI", .5f, .5f);
     }
 
     /// <summary>
     /// Resets UI text if player has not looked at an interactable object for more than .5 seconds
     /// or the object player is currently looking at is not currently interactable
     /// </summary>
-    /// <returns></returns>
-    private IEnumerator HideUI()
+    private void HideUI()
     {
-        yield return new WaitForSeconds(.5f);
-        // error check
-        if (currentObject == null) yield break;
-
         if (!playerStats.CheckForInteractableObject() || !currentObject.isInteractable)
         {
-            hideUICoroutine = null;
             text.text = "";
+            CancelInvoke("HideUI");
         }
-        else
-            hideUICoroutine = StartCoroutine(HideUI());
     }
 
     /// <summary>

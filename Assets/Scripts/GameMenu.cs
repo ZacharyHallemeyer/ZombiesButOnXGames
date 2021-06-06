@@ -52,7 +52,7 @@ public class GameMenu : MainMenu
 
     public void ExitToMainMenu()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1 );
+        SceneManager.LoadScene("MainMenu");
     }
 
     public override void SetSliderUI()

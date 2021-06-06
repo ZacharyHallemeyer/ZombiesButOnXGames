@@ -42,7 +42,7 @@ public class WaveSpawner : MonoBehaviour
     private void FillSpawnPoints()
     {
         int xCoord, yCoord, zCoord;
-        ProceduralGenerationEnvironment environment = FindObjectOfType<ProceduralGenerationEnvironment>();
+        GenerateWaveEnvironment environment = FindObjectOfType<GenerateWaveEnvironment>();
         enemySpawnPoints = new Vector3[4];
         yCoord = environment.outsideWallSize - 5;
         for(int i = 0; i < 4; i++)

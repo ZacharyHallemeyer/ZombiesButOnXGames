@@ -228,7 +228,6 @@ public class PlayerShooting : MonoBehaviour
 
             // Lift player off ground
             playerRB.AddForce(Vector2.up * 150);
-
         }
     }
     

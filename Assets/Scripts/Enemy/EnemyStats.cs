@@ -48,7 +48,7 @@ public class EnemyStats : MonoBehaviour
     /// subtracts damage from health and destorys enemy object if enemy
     /// health is less than or equal to 0
     /// Dependencies: ShowDamage, Death
-    public void TakeDamage(float damage)
+    public virtual void TakeDamage(float damage)
     {
         playerStats.CurrentPoints += (int) damage * playerStats.PointMultiplier;
         playerStats.ChangeInPointValue();

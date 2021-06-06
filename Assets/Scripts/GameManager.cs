@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     // Scripts
     public PlayerStats playerStats;
     public LoadingScreenScript loadingScreen;
-    public ProceduralGenerationEnvironment environment;
+    public GenerateWaveEnvironment environment;
 
     public bool playerShopedSpawnedThisWave = false;
 

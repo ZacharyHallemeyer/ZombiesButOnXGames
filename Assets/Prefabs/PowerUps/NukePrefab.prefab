@@ -9838,7 +9838,7 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.02228228, y: 0.023303762, z: 0.043105338}
+  m_Size: {x: 0.10390622, y: 0.08198173, z: 0.0832763}
   m_Center: {x: 0.00009965664, y: -0.00010341173, z: 0.008464443}
 --- !u!114 &-2995468736777055217
 MonoBehaviour:
@@ -9853,3 +9853,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nukeExplosion: {fileID: 5825774914013732047}
+  nukeSphereParticles: {fileID: 6240143569023748084}

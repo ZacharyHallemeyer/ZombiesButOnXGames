@@ -9,9 +9,12 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 44a7f801abbaa814fae8899ebd027626
   - enabled: 1
-    path: Assets/Scenes/ProceduralCItyTesting.unity
+    path: Assets/Scenes/WaveMode.unity
     guid: 516e7dda2bf4b314b927d8a82a417add
   - enabled: 1
-    path: Assets/Scenes/WaveMode.unity
+    path: Assets/Scenes/SurvivalMode.unity
+    guid: 136f660769b5dc64da6a84213ab2d1f4
+  - enabled: 1
+    path: Assets/Scenes/Tutorial.unity
     guid: bab3a00760b06fa4c80611e5e7a6fe52
   m_configObjects: {}

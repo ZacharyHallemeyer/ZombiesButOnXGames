@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class PowerUps : MonoBehaviour
 {
+    // Nuke variables
     public GameObject nukeExplosion;
+    public ParticleSystem nukeSphereParticles;
 
     private void Start()
     {
@@ -77,6 +79,7 @@ public class PowerUps : MonoBehaviour
         // disable mesh renderer and box collider because explosion particle system is a child of nuke
         gameObject.GetComponent<BoxCollider>().enabled = false;
         gameObject.GetComponent<MeshRenderer>().enabled = false;
+        nukeSphereParticles.Stop();
         nukeExplosion.SetActive(true);
         EnemyStats[] enemyStats = FindObjectsOfType<EnemyStats>();
         foreach(EnemyStats enemy in enemyStats)

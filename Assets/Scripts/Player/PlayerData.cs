@@ -9,42 +9,17 @@ public class PlayerData
     public int easyHighScoreWave;
     public int easyTotalEnemiesKilled;
     public int easyHighestPoints;
+    public int easyHighestTimeSurvived;
 
     // Hard mode
     public int hardHighScoreWave;
     public int hardTotalEnemiesKilled;
     public int hardHighestPoints;
+    public int hardHighestTimeSurvived;
 
     // Insane mode
     public int insaneHighScoreWave;
     public int insaneTotalEnemiesKilled;
     public int insaneHighestPoints;
-
-    public PlayerData(string difficulty, int highScoreWave, int enemiesKilled, int highestPoints)
-    {
-        switch (difficulty)
-        {
-            case "Easy":
-                easyHighScoreWave = highScoreWave;
-                easyTotalEnemiesKilled = enemiesKilled;
-                easyHighestPoints = highestPoints;
-                
-                break;
-            case "Hard":
-                hardHighScoreWave = highScoreWave;
-                hardTotalEnemiesKilled = enemiesKilled;
-                hardHighestPoints = highestPoints;
-                
-                break;
-            case "Insane":
-                insaneHighScoreWave = highScoreWave;
-                insaneTotalEnemiesKilled = enemiesKilled;
-                insaneHighestPoints = highestPoints;
-
-                break;
-            default:
-                Debug.LogError("Difficulty not found");
-                break;
-        }
-    }
+    public int insaneHighestTimeSurvived;
 }
