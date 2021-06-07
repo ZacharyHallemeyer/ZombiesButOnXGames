@@ -35,6 +35,12 @@ public class PlayerUIScript : MonoBehaviour
     // Grenade UI
     public TextMeshProUGUI grenadeText;
 
+    // Power Up UI
+    public TextMeshProUGUI powerUpText;
+
+    // Crouch UI
+    public Image crouchImage;
+
     // Grapple =============================
     public void SetMaxGrapple(float maxValue)
     {
@@ -144,4 +150,83 @@ public class PlayerUIScript : MonoBehaviour
     }
 
     // End of Grenade
+
+    // Power Up  ===========================
+
+    public void ChangePowerUpUI(string powerUpName)
+    {
+        switch (powerUpName)
+        {
+            case "DoublePoints":
+                powerUpText.text = "DOUBLE POINTS";
+                break;
+
+            case "MaxAmmo":
+                powerUpText.text = "MAX AMMO";
+                break;
+
+            case "Nuke":
+                powerUpText.text = "NUKE";
+                break;
+                
+            default:
+                Debug.LogError("Power up name not found");
+                break;
+        }
+
+        InvokeRepeating("HidePowerUpUI", 3f, 0f);
+    }
+
+    public void HidePowerUpUI()
+    {
+        powerUpText.text = "";
+        CancelInvoke("HidePowerUpUI");
+    }
+
+    // End of Power Up  ====================
+
+    // Crouch ==============================
+
+    public void ChangeToCrouch()
+    {
+        CancelInvoke("ChangeToStandAnim");
+        InvokeRepeating("ChangeToCrouchAnim", 0f, .01f);
+        //crouchImage.rectTransform.sizeDelta = new Vector2(50, 25);
+    }
+
+    public void ChangeToCrouchAnim()
+    {
+        if (crouchImage.rectTransform.sizeDelta.y > 25)
+        {
+            crouchImage.rectTransform.anchoredPosition -= new Vector2(0f, .25f);
+            crouchImage.rectTransform.sizeDelta -= Vector2.up;
+        }
+        else
+        {
+            crouchImage.rectTransform.sizeDelta = new Vector2(50, 25);
+            CancelInvoke("ChangeToCrouchAnim");
+        }
+    }
+
+    public void ChangeToStand()
+    {
+        CancelInvoke("ChangeToCrouchAnim");
+        InvokeRepeating("ChangeToStandAnim", 0f, .01f);
+    }
+
+    public void ChangeToStandAnim()
+    {
+        if(crouchImage.rectTransform.sizeDelta.y < 50)
+        {
+            crouchImage.rectTransform.localPosition += new Vector3(0f, .25f, 0f);
+            crouchImage.rectTransform.sizeDelta += Vector2.up;
+        }
+        else
+        {
+            crouchImage.rectTransform.sizeDelta = new Vector2(50, 50);
+            CancelInvoke("ChangeToStandAnim");
+        }
+    }
+
+    // End of Crouch =======================
 }

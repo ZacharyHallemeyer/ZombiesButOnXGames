@@ -74,28 +74,34 @@ public class GenerateWaveEnvironment : MonoBehaviour
 
         ground.transform.localScale = new Vector3(groundXSize, 1, groundZSize);
         ground.transform.parent = environmentContainer.transform;
+        ground.isStatic = true;
         // Spawn outside walls (4)
         outsideWallSize = Random.Range(outsideWallsMinYSize, outsideWallsMaxYSize);
         GameObject outsideWall = Instantiate(wallPrefab, new Vector3(startOfGroundX, outsideWallSize / 2, 0), transform.rotation);
         outsideWall.transform.localScale = new Vector3(1, outsideWallSize, groundZSize);
         outsideWall.transform.parent = environmentContainer.transform;
+        outsideWall.isStatic = true;
 
         outsideWall = Instantiate(wallPrefab, new Vector3(endOfGroundX, outsideWallSize / 2, 0), transform.rotation);
         outsideWall.transform.localScale = new Vector3(1, outsideWallSize, groundZSize);
         outsideWall.transform.parent = environmentContainer.transform;
+        outsideWall.isStatic = true;
 
         outsideWall = Instantiate(wallPrefab, new Vector3(0, outsideWallSize / 2, startOfGroundZ), transform.rotation);
         outsideWall.transform.localScale = new Vector3(groundXSize, outsideWallSize, 1);
         outsideWall.transform.parent = environmentContainer.transform;
+        outsideWall.isStatic = true;
 
         outsideWall = Instantiate(wallPrefab, new Vector3(0, outsideWallSize / 2, endOfGroundZ), transform.rotation);
         outsideWall.transform.localScale = new Vector3(groundXSize, outsideWallSize, 1);
         outsideWall.transform.parent = environmentContainer.transform;
+        outsideWall.isStatic = true;
 
         // Spawn roof
         GameObject roof = Instantiate(roofPrefab, new Vector3(0, outsideWallSize, 0), transform.rotation);
         roof.transform.localScale = new Vector3(groundXSize, 1, groundZSize);
         roof.transform.parent = environmentContainer.transform;
+        roof.isStatic = true;
     }
 
     private void SpawnBuildings()
@@ -140,6 +146,7 @@ public class GenerateWaveEnvironment : MonoBehaviour
         currentBuilding = Instantiate(buildingPrefab, buildingCenter, Quaternion.Euler(0, 0, 0));
         currentBuilding.transform.localScale = new Vector3(xSize, ySize, zSize);
         currentBuilding.transform.parent = environmentContainer.transform;
+        currentBuilding.isStatic = true;
 
         // Spawn one mystery box
         if (counter == 0)
@@ -148,6 +155,7 @@ public class GenerateWaveEnvironment : MonoBehaviour
                                           new Vector3(xCoord, ySize + 1.5f, zCoord),
                                            mysteryBoxPrefab.transform.rotation);
             currentBuilding.transform.parent = environmentContainer.transform;
+            currentBuilding.isStatic = true;
         }
         // Fill power up spawn locations (5 units above the first 10 buildings spawned)
         if(counter < 9 )
@@ -187,6 +195,7 @@ public class GenerateWaveEnvironment : MonoBehaviour
             light.GetComponent<Light>().color = RandomColor();
             light.GetComponent<Light>().range = yCoord + 100;
             light.transform.parent = environmentContainer.transform;
+            light.isStatic = true;
         }
         zCoord = 0;
         // Wall lights right
@@ -197,6 +206,7 @@ public class GenerateWaveEnvironment : MonoBehaviour
             light = Instantiate(wallLightRightPrefab, new Vector3(xCoord, yCoord, zCoord), wallLightRightPrefab.transform.rotation);
             light.GetComponent<Light>().color = RandomColor();
             light.transform.parent = environmentContainer.transform;
+            light.isStatic = true;
         }
         // Wall lights left
         for (int i = 0; i < wallLightCount; i++)
@@ -206,6 +216,7 @@ public class GenerateWaveEnvironment : MonoBehaviour
             light = Instantiate(wallLightLeftPrefab, new Vector3(xCoord, yCoord, zCoord), wallLightLeftPrefab.transform.rotation);
             light.GetComponent<Light>().color = RandomColor();
             light.transform.parent = environmentContainer.transform;
+            light.isStatic = true;
         }
         xCoord = 0;
         // Wall lights forward
@@ -216,6 +227,7 @@ public class GenerateWaveEnvironment : MonoBehaviour
             light = Instantiate(wallLightForwardPrefab, new Vector3(xCoord, yCoord, zCoord), wallLightForwardPrefab.transform.rotation);
             light.GetComponent<Light>().color = RandomColor();
             light.transform.parent = environmentContainer.transform;
+            light.isStatic = true;
         }
         zCoord = startOfGroundZ + (groundZSize * 2 / groundLightCount);
         // Wall lights backward
@@ -226,6 +238,7 @@ public class GenerateWaveEnvironment : MonoBehaviour
             light = Instantiate(wallLightBackwardPrefab, new Vector3(xCoord, yCoord, zCoord), wallLightBackwardPrefab.transform.rotation);
             light.GetComponent<Light>().color = RandomColor();
             light.transform.parent = environmentContainer.transform;
+            light.isStatic = true;
         }
     }
 
@@ -250,6 +263,7 @@ public class GenerateWaveEnvironment : MonoBehaviour
             currentSun.transform.localScale *= sunRadius;
             currentSun.GetComponent<Renderer>().material = sunMaterials[Random.Range(0, sunMaterials.Length)];
             currentSun.transform.parent = environmentContainer.transform;
+            currentSun.isStatic = true;
         }
     }
 
@@ -260,6 +274,8 @@ public class GenerateWaveEnvironment : MonoBehaviour
 
     private void SpawnShop()
     {
+        if (playerStats == null)
+            playerStats = FindObjectOfType<PlayerStats>();
         GameObject shopRoom = Instantiate(shopRoomPrefab, 
                               new Vector3(playerStats.shopSpawnPosition.x, 
                               playerStats.shopSpawnPosition.y - 2, playerStats.shopSpawnPosition.z), 

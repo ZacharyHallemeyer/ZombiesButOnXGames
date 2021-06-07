@@ -51,6 +51,8 @@ public class PowerUps : MonoBehaviour
         playerShooting.playerUI.SetGrenadeText(playerShooting.CurrentGrenades);
         playerShooting.playerUI.SetShockWaveText(playerShooting.CurrentShockWaves);
 
+        FindObjectOfType<PlayerUIScript>().ChangePowerUpUI("MaxAmmo");
+
         Destroy(gameObject);
     }
 
@@ -65,6 +67,7 @@ public class PowerUps : MonoBehaviour
         playerStats.CancelInvoke("DeactivateDoublePoints");
         playerStats.PointMultiplier = 2;
         playerStats.InvokeRepeating("DeactivateDoublePoints", 30f, .01f);
+        FindObjectOfType<PlayerUIScript>().ChangePowerUpUI("DoublePoints");
         Destroy(gameObject);
     }
 
@@ -76,6 +79,7 @@ public class PowerUps : MonoBehaviour
     {
         // Add 500 points to player points
         FindObjectOfType<PlayerStats>().CurrentPoints += 500;
+        FindObjectOfType<PlayerStats>().ChangeInPointValue();
         // disable mesh renderer and box collider because explosion particle system is a child of nuke
         gameObject.GetComponent<BoxCollider>().enabled = false;
         gameObject.GetComponent<MeshRenderer>().enabled = false;
@@ -85,6 +89,7 @@ public class PowerUps : MonoBehaviour
         foreach(EnemyStats enemy in enemyStats)
             enemy.Death();
         InvokeRepeating("DestroyNuke", 2, 0);
+        FindObjectOfType<PlayerUIScript>().ChangePowerUpUI("Nuke");
     }
 
     private void DestroyNuke()

@@ -201,7 +201,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7117910726812249929}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameMenu, Assembly-CSharp
         m_MethodName: SetNewHueShift
         m_Mode: 0
@@ -1084,7 +1084,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7117910726812249929}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameMenu, Assembly-CSharp
         m_MethodName: SetNewBloom
         m_Mode: 0
@@ -1962,7 +1962,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 7117910726812249929}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameMenu, Assembly-CSharp
         m_MethodName: SetVolumeGameUI
         m_Mode: 1
@@ -2504,7 +2504,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7117910726812249929}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameMenu, Assembly-CSharp
         m_MethodName: ResumeGame
         m_Mode: 1
@@ -3198,7 +3198,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7117910726812249929}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
         m_MethodName: SetSoundEffectsPreference
         m_Mode: 0
@@ -4241,7 +4241,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7117910726812249929}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: GameMenu, Assembly-CSharp
         m_MethodName: ExitToMainMenu
         m_Mode: 1
@@ -5651,7 +5651,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 7117910726812249929}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: MainMenu, Assembly-CSharp
         m_MethodName: SetMusicVolumePreference
         m_Mode: 0
@@ -5672,7 +5672,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7117910726812249928}
-  - component: {fileID: 7117910726812249929}
   m_Layer: 0
   m_Name: GameMenu
   m_TagString: Untagged
@@ -5695,29 +5694,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7117910726812249929
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7117910726812249935}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8684119c138bb1c4abb680bf760fe2b6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hueShiftSlider: {fileID: 0}
-  bloomSlider: {fileID: 0}
-  musicSlider: {fileID: 0}
-  soundEffectSlider: {fileID: 0}
-  gameMenu: {fileID: 7117910726812249935}
-  playerMovement: {fileID: 0}
-  playerShooting: {fileID: 0}
-  gameMenuMusicSlider: {fileID: 7117910726807932222}
-  gameMenuSoundEffectSlider: {fileID: 7117910725343422141}
-  gameMenuHueShiftSlider: {fileID: 989800527883751929}
-  gameMenuBloomSlider: {fileID: 2411408854680749922}
 --- !u!1 &7733749231173485126
 GameObject:
   m_ObjectHideFlags: 0

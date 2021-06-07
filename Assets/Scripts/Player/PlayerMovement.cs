@@ -8,8 +8,8 @@ public class PlayerMovement : Movement
     //Assingables
     public Transform playerCam;
     public Transform orientation;
-    //public PlayerShooting playerShooting;
-    public ExperimentalPlayerShooting playerShooting;
+    public PlayerShooting playerShooting;
+    public PlayerUIScript playerUIScript;
 
     //Other
     private Rigidbody rb;
@@ -32,7 +32,6 @@ public class PlayerMovement : Movement
     private readonly float counterMovement = 0.175f;
     private readonly float threshold = 0.01f;
     private bool shouldSlide;
-    public int climbForce = 1000;
     public LayerMask whatIsGround;
     public bool grounded;
 
@@ -60,7 +59,7 @@ public class PlayerMovement : Movement
     private readonly float wallDistance = 1f;
     public float wallrunForce, maxWallrunTime;
     public float maxWallRunCameraTilt, wallRunCameraTilt;
-    private readonly float leftHandPosition = -1.15f, rightHandPosition = -0.3f;
+    //private readonly float leftHandPosition = -1.5f, rightHandPosition = -0.3f;
     private float currentHandPosition = .15f;
     private float wallRunSpeed = 100f, maxWallRunSpeed = 40f;
     public float timeOnWall, maxtimeOnWall = 3f;
@@ -133,7 +132,6 @@ public class PlayerMovement : Movement
     /// </summary>
     private void StartCrouch()
     {
-        playerShooting.isAnimInProgress = true;
         transform.localScale = crouchScale;
         transform.position = new Vector3(transform.position.x, transform.position.y - 0.5f, transform.position.z);
         if (rb.velocity.magnitude > 0.5f)
@@ -142,18 +140,7 @@ public class PlayerMovement : Movement
         // Prevents guns and other such objects from shrinking
         foreach(Transform child in gameObject.transform)
             child.localScale = playerScale;
-        InvokeRepeating("StartCrouchAnimation", 0, .1f / crouchGunDegree);
-    }
-
-    private void StartCrouchAnimation()
-    {
-        if (playerShooting.currentGun.gunContainer.transform.localRotation.eulerAngles.z < crouchGunDegree)
-            playerShooting.currentGun.gunContainer.transform.localRotation *= Quaternion.Euler(0, 0, 1f);
-        else
-        {
-            playerShooting.isAnimInProgress = false;
-            CancelInvoke("StartCrouchAnimation");
-        }
+        playerUIScript.ChangeToCrouch();
     }
 
     /// <summary>
@@ -161,27 +148,14 @@ public class PlayerMovement : Movement
     /// </summary>
     public void StopCrouch()
     {
-        playerShooting.isAnimInProgress = true;
+        //playerShooting.isAnimInProgress = true;
         transform.localScale = playerScale;
         transform.position = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z);
 
         // Prevents guns and other such objects from expanding larger than intended
         foreach (Transform child in gameObject.transform)
             child.localScale = crouchScale;
-
-        CancelInvoke("StartCrouchAnimation");
-        InvokeRepeating("StopCrouchAnimation", 0, .1f / crouchGunDegree);
-    }
-
-    private void StopCrouchAnimation()
-    {
-        if (playerShooting.currentGun.gunContainer.transform.localRotation.eulerAngles.z > .01f)
-            playerShooting.currentGun.gunContainer.transform.localRotation *= Quaternion.Euler(0, 0, -1f);
-        else
-        {
-            CancelInvoke("StopCrouchAnimation");
-            playerShooting.isAnimInProgress = false;
-        }
+        playerUIScript.ChangeToStand();
     }
 
     /// <summary>
@@ -462,20 +436,20 @@ public class PlayerMovement : Movement
 
         // Switch hand gun is in (Prevents gun from phasing into wall)
         if (isWallRight && isWallLeft) return;
-        if (!IsOnWall && gunPosition.localPosition.x < rightHandPosition)
+        if (!IsOnWall && gunPosition.localPosition.x < playerShooting.currentGun.rightHandPosition)
         {
-            currentHandPosition = Time.deltaTime * rightHandPosition * 14;
+            currentHandPosition = Time.deltaTime * playerShooting.currentGun.rightHandPosition * 14;
             gunPosition.localPosition -= Vector3.right * currentHandPosition;
         }
-        else if (isWallLeft && gunPosition.localPosition.x < rightHandPosition)
+        else if (isWallLeft && gunPosition.localPosition.x < playerShooting.currentGun.rightHandPosition)
         {
-            currentHandPosition = Time.deltaTime * rightHandPosition * 14;
+            currentHandPosition = Time.deltaTime * playerShooting.currentGun.rightHandPosition * 14;
             gunPosition.localPosition -= Vector3.right * currentHandPosition;
 
         }
-        else if (isWallRight && gunPosition.localPosition.x > leftHandPosition)
+        else if (isWallRight && gunPosition.localPosition.x > playerShooting.currentGun.leftHandPosition)
         {
-            currentHandPosition = Time.deltaTime * leftHandPosition * 4;
+            currentHandPosition = Time.deltaTime * playerShooting.currentGun.leftHandPosition * 4;
             gunPosition.localPosition += Vector3.right * currentHandPosition;
         }
     }

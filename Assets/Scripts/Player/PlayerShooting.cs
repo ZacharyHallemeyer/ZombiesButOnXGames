@@ -28,17 +28,37 @@ public class PlayerShooting : MonoBehaviour
     public Vector3 GrapplePoint { get; private set; }
 
     // Gun Variables =======================
+
+    public class GunInformation
+    {
+        public string name;
+        public GameObject gunContainer;
+        public ParticleSystem bullet;
+        public ParticleSystem gun;
+        public float originalGunRadius;
+        public int magSize;
+        public int ammoIncrementor;
+        public int reserveAmmo;
+        public int currentAmmo;
+        public float damage;
+        public float fireRate;
+        public float accuaracyOffset;
+        public float reloadTime;
+        public float range;
+        public float rightHandPosition;
+        public float leftHandPosition;
+        public bool isAutomatic;
+    }
+
+    public Dictionary<string, GunInformation> allGunInformation { get; private set; } = new Dictionary<string, GunInformation>();
+
     public float timeSinceLastShoot = 5f;
     public int scrollingCounter = 0;
 
     // Animation variables
     public int animationCounter = 0;
-    public int singleFireRecoilDegree = 10;
     public bool isAnimInProgress;
-    public bool isReloading;
-    public bool isChangingCurrentWeapon;
-    public bool isPickingUpWeapon;
-    public bool isSingleFireRecoil;
+    public bool isAudioPlaying = false;
 
     // Arrays
     public string[] gunNames;
@@ -49,6 +69,25 @@ public class PlayerShooting : MonoBehaviour
     public GameObject[] shotgunHitParticleGameObjects;
     public ParticleSystem[] shotgunHitParticles;
 
+    // Guns
+    // Gun models (GameObject) and muzzleflashes (ParticleSystem)
+    public GameObject gunPistol;
+    public GameObject gunSMG;
+    public GameObject gunAR;
+    public GameObject gunShotgun;
+    public ParticleSystem pistolMuzzleFlash;
+    public ParticleSystem smgMuzzleFlash;
+    public ParticleSystem arMuzzleFlash;
+    public ParticleSystem shotgunMuzzleFlash;
+    public ParticleSystem pistol;
+    public ParticleSystem smg;
+    public ParticleSystem ar;
+    public ParticleSystem shotgun;
+
+    public GunInformation currentGun;
+    public GunInformation secondaryGun;
+    private ParticleSystem.ShapeModule  shapeModule;
+
     public LayerMask whatIsShootable;
     public int currentParticleIndex;
 
@@ -56,10 +95,6 @@ public class PlayerShooting : MonoBehaviour
     public Transform gunContainer;
     public Transform gunPosition;
     public Transform firePoint;
-
-    // GunInformation variables
-    public PlayerStats.GunInformation currentGun;
-    public PlayerStats.GunInformation secondaryGun;
 
     // UI
     public PlayerUIScript playerUI;
@@ -81,11 +116,11 @@ public class PlayerShooting : MonoBehaviour
         playerUI.SetShockWaveText(CurrentShockWaves);
 
         // Set up guns
-        playerStats.SetGunInformation();
+        SetGunInformation();
 
         int index = 0;
-        gunNames = new string[playerStats.allGunInformation.Count];
-        foreach(string str in playerStats.allGunInformation.Keys)
+        gunNames = new string[allGunInformation.Count];
+        foreach(string str in allGunInformation.Keys)
         {
             gunNames[index] = str;
             index++;
@@ -93,10 +128,11 @@ public class PlayerShooting : MonoBehaviour
 
         do
         {
-            currentGun = playerStats.allGunInformation[gunNames[Random.Range(0, gunNames.Length)]];
-            secondaryGun = playerStats.allGunInformation[gunNames[Random.Range(0, gunNames.Length)]];
+            currentGun = allGunInformation[gunNames[Random.Range(0, gunNames.Length)]];
+            secondaryGun = allGunInformation[gunNames[Random.Range(0, gunNames.Length)]];
         } while ( currentGun.name.Equals(secondaryGun.name) );
 
+        shapeModule = currentGun.gun.shape;
         currentGun.gunContainer.SetActive(true);
         playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
 
@@ -119,9 +155,99 @@ public class PlayerShooting : MonoBehaviour
         audioManager = FindObjectOfType<AudioManager>();
     }
 
+    /// <summary>
+    /// Fills the dictionary allGunInformation with hardcoded informaiton of each gun
+    /// </summary>
+    public void SetGunInformation()
+    {
+        allGunInformation["GunPistol"] = new GunInformation
+        {
+            name = "GunPistol",
+            gunContainer = gunPistol,
+            bullet = pistolMuzzleFlash,
+            gun = pistol,
+            originalGunRadius = pistol.shape.radius,
+            magSize = 6,
+            ammoIncrementor = 60,
+            reserveAmmo = 60,
+            currentAmmo = 6,
+            damage = 30,
+            fireRate = .7f,
+            accuaracyOffset = .001f,
+            reloadTime = 1f,
+            range = 1000f,
+            rightHandPosition = -.3f,
+            leftHandPosition = -1.5f,
+            isAutomatic = false,
+        };
+
+        allGunInformation["GunSMG"] = new GunInformation
+        {
+            name = "GunSMG",
+            gunContainer = gunSMG,
+            bullet = smgMuzzleFlash,
+            gun = smg,
+            originalGunRadius = smg.shape.radius,
+            magSize = 30,
+            ammoIncrementor = 300,
+            reserveAmmo = 300,
+            currentAmmo = 30,
+            damage = 10,
+            fireRate = .1f,
+            accuaracyOffset = .025f,
+            reloadTime = .1f,
+            range = 1000f,
+            rightHandPosition = -.3f,
+            leftHandPosition = -1.5f,
+            isAutomatic = true,
+        };
+
+        allGunInformation["GunAR"] = new GunInformation
+        {
+            name = "GunAR",
+            gunContainer = gunAR,
+            bullet = arMuzzleFlash,
+            gun = ar,
+            originalGunRadius = ar.shape.radius,
+            magSize = 20,
+            ammoIncrementor = 260,
+            reserveAmmo = 260,
+            currentAmmo = 20,
+            damage = 20,
+            fireRate = .2f,
+            accuaracyOffset = .02f,
+            reloadTime = 1f,
+            range = 1000f,
+            rightHandPosition = -.3f,
+            leftHandPosition = -1.5f,
+            isAutomatic = true,
+        };
+
+        allGunInformation["GunShotgun"] = new GunInformation
+        {
+            name = "GunShotgun",
+            gunContainer = gunShotgun,
+            bullet = shotgunMuzzleFlash,
+            gun = shotgun,
+            originalGunRadius = shotgun.shape.radius,
+            magSize = 8,
+            ammoIncrementor = 80,
+            reserveAmmo = 80,
+            currentAmmo = 8,
+            damage = 10,
+            fireRate = .7f,
+            accuaracyOffset = .1f,
+            reloadTime = 1f,
+            range = 75f,
+            rightHandPosition = -.3f,
+            leftHandPosition = -.3f,
+            isAutomatic = false,
+        };
+    }
+
     private void Update()
     {
-        // Handle grapple
+        // Handle grapple =========================================
         // Player must have more than 25% of grapple left to start grapple
         if (Input.GetMouseButtonDown(2) && timeLeftToGrapple > (maxGrappleTime * .25))
             StartGrapple();
@@ -129,7 +255,7 @@ public class PlayerShooting : MonoBehaviour
                  && IsGrappling)
             StopGrapple();
 
-        // Handle gun shooting
+        // Handle gun shooting ====================================
         if (!isAnimInProgress)
         {
             // Switching between primary and secondary by using mouse scroll wheel or '1' on keyboard
@@ -150,27 +276,27 @@ public class PlayerShooting : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Mouse0) && currentGun.currentAmmo > 0)
             {
                 if (currentGun.isAutomatic)
-                    InvokeRepeating("BaseShoot", 0f, currentGun.fireRate);
-                else
                 {
-                    if (currentGun.name.Equals("GunShotgun"))
-                        ShotgunShoot();
-                    else
-                        BaseShoot();
+                    ParticleSystem.RotationOverLifetimeModule rot = currentGun.gun.rotationOverLifetime;
+                    rot.enabled = true;
+                    InvokeRepeating("AutomaticShoot", 0f, currentGun.fireRate);
                 }
+                else
+                    SingleFireShoot();
             }
             else if (Input.GetKeyUp(KeyCode.Mouse0))
             {
-                if (currentGun.isAutomatic)
-                    CancelInvoke("BaseShoot");
-                CorrectGunPosition();
+                if(currentGun.isAutomatic)
+                {
+                    StopAutomaticShoot();
+                }
             }
             // Reload
             else if (currentGun.currentAmmo < currentGun.magSize && Input.GetKeyDown(KeyCode.R) && currentGun.reserveAmmo > 0)
             {
-                audioManager.Play("GunReload");
+                StopAutomaticShoot();
                 isAnimInProgress = true;
-                InvokeRepeating("Reload", 0, currentGun.reloadTime / 360f);
+                Reload();
             }
 
             // Handle Grenades
@@ -194,6 +320,345 @@ public class PlayerShooting : MonoBehaviour
             ContinueGrapple();
     }
 
+    /// <summary>
+    /// fires a raycast from firepoint and damages if ray hits an enemy
+    /// </summary>
+    private void AutomaticShoot()
+    {
+        if(!isAudioPlaying)
+        {
+            audioManager.Play(currentGun.name);
+            isAudioPlaying = true;
+        }
+        currentGun.bullet.Play();
+        // Reduce accuracy by a certain value 
+        Vector3 reduceAccuracy = firePoint.forward + new Vector3(Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset),
+                                                                Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset));
+
+        currentGun.currentAmmo--;
+
+        // Reload if current ammo is zero
+        if (currentGun.currentAmmo <= 0)
+        {
+            if (currentGun.reserveAmmo > 0)
+            {
+                Reload();
+                StopAutomaticShoot();
+            }
+        }
+
+        playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+
+        Ray ray = new Ray(firePoint.position, reduceAccuracy);
+        if (Physics.Raycast(ray, out RaycastHit hit, currentGun.range, whatIsShootable))
+        {
+            // Play shot hit particle
+            shotHitParitcleGameObject.transform.position = hit.point;
+            shotHitParticle.Play();
+
+            // Damage enemy if hit was an enemy
+            EnemyStats enemyStats = hit.collider.GetComponent<EnemyStats>();
+            if (enemyStats != null)
+                enemyStats.TakeDamage(currentGun.damage);
+                
+
+        }
+    }
+
+    private void StopAutomaticShoot()
+    {
+        ParticleSystem.RotationOverLifetimeModule rot = currentGun.gun.rotationOverLifetime;
+        rot.enabled = false;
+        if(isAudioPlaying)
+        {
+            isAudioPlaying = false;
+            audioManager.Stop(currentGun.name);
+        }
+        CancelInvoke("AutomaticShoot");
+    }
+
+    /// <summary>
+    /// fires 10 raycasts from firepoint and damages if ray hits an enemy
+    /// </summary>
+    private void SingleFireShoot()
+    {
+        isAnimInProgress = true;
+        audioManager.Play(currentGun.name);
+        currentGun.gun.Stop();
+        currentGun.bullet.Play();
+        InvokeRepeating("SingleFireShootAnim", currentGun.fireRate, 0);
+
+        // Reduce accuracy by a certain value 
+        Vector3 reduceAccuracy = firePoint.forward + new Vector3(Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset),
+                                                                Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset));
+
+        currentGun.currentAmmo--;
+
+        // Reload if current ammo is zero
+        if (currentGun.currentAmmo <= 0)
+        {
+            if (currentGun.reserveAmmo > 0)
+            {
+                Reload();
+            }
+        }
+
+        playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+
+        if (currentGun.name == "GunPistol")
+        {
+            Ray ray = new Ray(firePoint.position, reduceAccuracy);
+            if (Physics.Raycast(ray, out RaycastHit hit, currentGun.range, whatIsShootable))
+            {
+                // Play shot hit particle
+                shotHitParitcleGameObject.transform.position = hit.point;
+                shotHitParticle.Play();
+
+                // Damage enemy if hit was an enemy
+                EnemyStats enemyStats = hit.collider.GetComponent<EnemyStats>();
+                if (enemyStats != null)
+                    enemyStats.TakeDamage(currentGun.damage);
+            }
+            
+        }
+        // shotgun
+        else
+        {
+        Vector3 trajectory;
+            for (int i = 0; i < 10; i++)
+            {
+                trajectory = firePoint.forward + new Vector3(Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset),
+                                                                Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset),
+                                                                Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset));
+                Ray ray = new Ray(firePoint.position, trajectory);
+                if (Physics.Raycast(ray, out RaycastHit hit, currentGun.range, whatIsShootable))
+                {
+                    // Play particle representing where ray hit
+                    shotgunHitParticleGameObjects[i].transform.position = hit.point;
+                    shotgunHitParticles[i].Play();
+
+                    // Damage enemy if hit was an enemy
+                    EnemyStats enemyStats = hit.collider.GetComponent<EnemyStats>();
+                    if (enemyStats != null)
+                        enemyStats.TakeDamage(currentGun.damage);
+                }
+            }
+        }
+
+        // Reload if current ammo is zero
+        if (currentGun.currentAmmo <= 0)
+        {
+            if (currentGun.reserveAmmo > 0)
+            {
+                Reload();
+            }
+        }
+    }
+
+    private void SingleFireShootAnim()
+    {
+        currentGun.gun.Play();
+        isAnimInProgress = false;
+        CancelInvoke("SingleFireShootAnim");
+    }
+
+    // Must called with InvokeRepeating
+    // This function plays a reload animation and 'reloads' current gun
+    private void Reload()
+    {
+        isAnimInProgress = true;
+        audioManager.Play("GunReload");
+        InvokeRepeating("ReloadAnimCompress", 0f, currentGun.reloadTime / 6f);
+    }
+
+    /// <summary>
+    /// This takes 6 iterations
+    /// </summary>
+    private void ReloadAnimCompress()
+    {
+        if (shapeModule.radius > currentGun.originalGunRadius * 10)
+        {
+            InvokeRepeating("ReloadAnimExpand", 0f, currentGun.reloadTime / 4);
+            CancelInvoke("ReloadAnimCompress");
+            return;
+        }
+        currentGun.gun.Stop();
+        shapeModule.radius *= 1.5f;
+        currentGun.gun.Play();
+    }
+
+    /// <summary>
+    /// This takes 4 iterations
+    /// </summary>
+    private void ReloadAnimExpand()
+    {
+        if (shapeModule.radius < currentGun.originalGunRadius)
+        {
+            shapeModule.radius = currentGun.originalGunRadius;
+            isAnimInProgress = false;
+            CancelInvoke("ReloadAnimExpand");
+
+            // Reload gun
+            if (currentGun.reserveAmmo > currentGun.magSize)
+            {
+                currentGun.reserveAmmo += -currentGun.magSize + currentGun.currentAmmo;
+                currentGun.currentAmmo = currentGun.magSize;
+            }
+            else
+            {
+                if (currentGun.magSize - currentGun.currentAmmo <= currentGun.reserveAmmo)
+                {
+                    currentGun.reserveAmmo -= currentGun.magSize - currentGun.currentAmmo;
+                    currentGun.currentAmmo = currentGun.magSize;
+                }
+                else
+                {
+                    currentGun.currentAmmo += currentGun.reserveAmmo;
+                    currentGun.reserveAmmo = 0;
+                }
+
+            }
+            // Reset ammo UI
+            playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+            return;
+        }
+        currentGun.gun.Stop();
+        shapeModule.radius *= .5f;
+        currentGun.gun.Play();
+    }
+
+    // Change current weapon to secondary and vice versa
+    // Dependencies: ChangeCurrentWeaponAnimation
+    private void ChangeCurrentWeapon()
+    {
+        StopAutomaticShoot();
+        isAnimInProgress = true;
+        GunInformation temp = currentGun;
+        currentGun = secondaryGun;
+        secondaryGun = temp;
+        playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
+        InvokeRepeating("ChangeCurrentGunAnimationExapnd", 0, 1f / 10f);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private void ChangeCurrentGunAnimationExapnd()
+    {
+        if (animationCounter >= 10)
+        {
+            animationCounter = 0;
+            CancelInvoke("ChangeCurrentGunAnimationExapnd");
+            shapeModule.radius = currentGun.originalGunRadius;
+
+            secondaryGun.gunContainer.SetActive(false);
+            currentGun.gunContainer.SetActive(true);
+            shapeModule = currentGun.gun.shape;
+            shapeModule.radius *= 20;
+
+            if (playerMovement.crouching)
+            {
+                playerMovement.InvokeRepeating("StartCrouchAnimation", 0, .1f / playerMovement.crouchGunDegree);
+                secondaryGun.gunContainer.transform.localRotation = Quaternion.Euler(0, 0, 0);
+            }
+
+            InvokeRepeating("ChangeCurrentGunAnimationCompress", 0f, 1f / 10);
+            return;
+        }
+        // else
+        secondaryGun.gun.Stop();
+        shapeModule.radius *= 2;
+        secondaryGun.gun.Play();
+
+        animationCounter++;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private void ChangeCurrentGunAnimationCompress()
+    {
+        if (animationCounter >= 10)
+        {
+            animationCounter = 0;
+            CancelInvoke("ChangeCurrentGunAnimationCompress");
+
+            shapeModule.radius = currentGun.originalGunRadius;
+            isAnimInProgress = false;
+            return;
+        }
+        // else
+        currentGun.gun.Stop();
+        shapeModule.radius /= 2;
+        currentGun.gun.Play();
+
+        animationCounter++;
+    }
+
+    /// <summary>
+    /// Resets current gun and starts pick up weapon animation
+    /// </summary>
+    /// <param name="gunName"></param>
+    public void PickUpWeapon(string gunName)
+    {
+        isAnimInProgress = true;
+        StartCoroutine(PickWeapnAnimationExpand(0, gunName));
+    }
+
+    private IEnumerator PickWeapnAnimationExpand(int counter, string gunName)
+    {
+        yield return new WaitForSeconds(1f / 10f);
+        if (counter >= 10)
+        {
+            animationCounter = 0;
+            shapeModule.radius = currentGun.originalGunRadius;
+
+            currentGun.gunContainer.SetActive(false);
+            currentGun = allGunInformation[gunName];
+
+            shapeModule = currentGun.gun.shape;
+            shapeModule.radius *= 20;
+            currentGun.gunContainer.SetActive(true);
+
+            if (playerMovement.crouching)
+            {
+                playerMovement.InvokeRepeating("StartCrouchAnimation", 0, .1f / playerMovement.crouchGunDegree);
+                secondaryGun.gunContainer.transform.localRotation = Quaternion.Euler(0, 0, 0);
+            }
+
+            InvokeRepeating("ChangeCurrentGunAnimationCompress", 0f, 1f / 10);
+            yield break;
+        }
+        // else
+        currentGun.gun.Stop();
+        shapeModule.radius *= 2;
+        currentGun.gun.Play();
+
+        StartCoroutine(PickWeapnAnimationExpand(counter + 1, gunName));
+    }
+
+
+    /// <summary>
+    /// plays animation where primary gun is lifted over head and seconday gun comes down 
+    /// counter: current count of how many times function has been called
+    /// gunName: name of gun to switch to 
+    /// </summary>
+    private IEnumerator PickWeapnAnimation(int counter, string gunName)
+    {
+        yield return new WaitForEndOfFrame();
+    }
+
+    /// <summary>
+    /// Instantiates grenade at GrenadeFirePoint and adds a forward force
+    /// </summary>
+    private void ThrowGrenade()
+    {
+        CurrentGrenades--;
+        playerUI.SetGrenadeText(CurrentGrenades);
+        Rigidbody grenade = Instantiate(grenadePrefab, grenadeFirePoint.position, transform.rotation).GetComponent<Rigidbody>();
+        grenade.AddForce(grenadeFirePoint.forward * grenadeThrowForce * Time.deltaTime, ForceMode.Impulse);
+    }
+    // GRAPPLE ==============================================================================
 
     /// <summary>
     /// Turns off gravity, creates joints for grapple
@@ -293,325 +758,5 @@ public class PlayerShooting : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// fires a raycast from firepoint and damages if ray hits an enemy
-    /// </summary>
-    private void BaseShoot()
-    {
-        audioManager.Play(currentGun.name);
-        SimulateRecoil();
-        currentGun.muzzleFlash.Play();
-
-        // Reduce accuracy by a certain value 
-        Vector3 reduceAccuracy = firePoint.forward + new Vector3(Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset), 
-                                                                Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset));
-
-        currentGun.currentAmmo--;
-        
-        // Reload if current ammo is zero
-        if(currentGun.currentAmmo <= 0)
-        {
-            if(currentGun.reserveAmmo > 0)
-            {
-                audioManager.Play("GunReload");
-                isAnimInProgress = true;
-                InvokeRepeating("Reload", 0, currentGun.reloadTime / 360f);
-            }
-            CorrectGunPosition();
-            if(currentGun.isAutomatic)
-                CancelInvoke("BaseShoot");
-        }
-
-        playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
-
-        Ray ray = new Ray(firePoint.position, reduceAccuracy);
-        if (Physics.Raycast(ray, out RaycastHit hit, currentGun.range, whatIsShootable))
-        {
-            // Play particle representing where ray hit
-            shotHitParitcleGameObject.transform.position = hit.point;
-            shotHitParticle.Play();
-
-            // Damage enemy if hit was an enemy
-            EnemyStats enemyStats = hit.collider.GetComponent<EnemyStats>();
-            if (enemyStats == null) return;
-
-            enemyStats.TakeDamage(currentGun.damage);
-        }
-    }
-
-    /// <summary>
-    /// fires 10 raycasts from firepoint and damages if ray hits an enemy
-    /// </summary>
-    private void ShotgunShoot()
-    {
-        audioManager.Play(currentGun.name);
-        Vector3 trajectory;
-        SimulateRecoil();
-        currentGun.muzzleFlash.Play();
-
-        currentGun.currentAmmo--;
-
-        // Reload if current ammo is zero
-        if (currentGun.currentAmmo <= 0)
-        {
-            if (currentGun.reserveAmmo > 0)
-            {
-                audioManager.Play("GunReload");
-                isAnimInProgress = true;
-                InvokeRepeating("Reload", 0, currentGun.reloadTime / 360f);
-            }
-            CorrectGunPosition();
-            if (currentGun.isAutomatic)
-                CancelInvoke("BaseShoot");
-        }
-
-        playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
-
-        for(int i = 0; i < 10; i++)
-        {
-            trajectory = firePoint.forward + new Vector3(Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset),
-                                                         Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset),
-                                                         Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset));
-            Ray ray = new Ray(firePoint.position, trajectory);
-            if (Physics.Raycast(ray, out RaycastHit hit, currentGun.range, whatIsShootable))
-            {
-                // Play particle representing where ray hit
-                shotgunHitParticleGameObjects[i].transform.position = hit.point;
-                shotgunHitParticles[i].Play();
-
-
-                // Damage enemy if hit was an enemy
-                EnemyStats enemyStats = hit.collider.GetComponent<EnemyStats>();
-                if ( !(enemyStats == null) )
-                    enemyStats.TakeDamage(currentGun.damage);
-            }
-        }
-
-    }
-
-    // Must called with InvokeRepeating
-    // This function plays a reload animation and 'reloads' current gun
-    private void Reload()
-    {
-        CancelInvoke("BaseShoot");
-        // if first iteration set isAnimInProgress to true
-        if (animationCounter == 0)
-            isAnimInProgress = true;
-
-        // Rotate gun on x axis
-        gunContainer.localRotation = Quaternion.Euler(1f, 0, 0) * gunContainer.localRotation;
-        animationCounter++;
-
-        // if gun has rotated 360 degress then stop function
-        if(animationCounter >= 360)
-        {
-            // Reset reload variables
-            gunContainer.localRotation = new Quaternion(0f, 0f, 0f, 0f);
-            isAnimInProgress = false;
-            animationCounter = 0;
-
-            // Reload gun
-            if (currentGun.reserveAmmo > currentGun.magSize)
-            {
-                currentGun.reserveAmmo += -currentGun.magSize + currentGun.currentAmmo;
-                currentGun.currentAmmo = currentGun.magSize;
-            }
-            else
-            {
-                if (currentGun.magSize - currentGun.currentAmmo <= currentGun.reserveAmmo)
-                {
-                    currentGun.reserveAmmo -= currentGun.magSize - currentGun.currentAmmo;
-                    currentGun.currentAmmo = currentGun.magSize;
-                }
-                else
-                {
-                    currentGun.currentAmmo += currentGun.reserveAmmo;
-                    currentGun.reserveAmmo = 0;
-                }
-
-            }
-            // Reset ammo UI and cancel invoke
-            playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
-            CancelInvoke("Reload");
-        }
-    }
-
-    // Change current weapon to secondary and vice versa
-    // Dependencies: ChangeCurrentWeaponAnimation
-    private void ChangeCurrentWeapon()
-    {
-        CancelInvoke("BaseShoot");
-        isAnimInProgress = true;
-        PlayerStats.GunInformation temp = currentGun;
-        currentGun = secondaryGun;
-        secondaryGun = temp;
-        playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
-        // 180 degrees in 1 second of scaled time
-        InvokeRepeating("ChangeCurrentGunAnimation", 0, 1f / 180f);
-    }
-
-    /// <summary>
-    /// Rotates current gun 90 degrees on x-axis, switches to secondary, and moves secondary (new current) down 90 degrees
-    /// </summary>
-    private void ChangeCurrentGunAnimation()
-    {
-        animationCounter++;
-        if (animationCounter < 180)
-        {
-            // disable primary gun and enable new primary gun
-            if (animationCounter == 90)
-            {
-                secondaryGun.gunContainer.SetActive(false);
-                currentGun.gunContainer.SetActive(true);
-                // fix gun rotation if player is crouching to prevent secondary gun having a crouch angled rotation while
-                // player is not crouching
-                if(playerMovement.crouching)
-                {
-                    playerMovement.InvokeRepeating("StartCrouchAnimation", 0, .1f / playerMovement.crouchGunDegree);
-                    secondaryGun.gunContainer.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                }
-            }
-
-            // Rotate gun upwards if counter is less han 90
-            if (animationCounter < 90)
-            {
-                gunContainer.localRotation = Quaternion.Euler(-1f, 0, 0) * gunContainer.localRotation;
-            }
-            // Rotate gun downwards otherwise
-            else
-            {
-                gunContainer.localRotation = Quaternion.Euler(1f, 0, 0) * gunContainer.localRotation;
-            }
-        }
-        else
-        {
-            // animation finished so reset variables
-            isAnimInProgress = false;
-            gunContainer.localRotation = new Quaternion(0f, 0f, 0f, 0f);
-            animationCounter = 0;
-            CancelInvoke("ChangeCurrentGunAnimation");
-        }
-    }
-
-    /// <summary>
-    /// Resets current gun and starts pick up weapon animation
-    /// </summary>
-    /// <param name="gunName"></param>
-    public void PickUpWeapon(string gunName)
-    {
-        isAnimInProgress = true;
-        // Reset reserve ammo for current weapon
-        currentGun.reserveAmmo = currentGun.ammoIncrementor;
-        StartCoroutine(PickWeapnAnimation(0, gunName));
-    }
-
-    
-    /// <summary>
-    /// plays animation where primary gun is lifted over head and seconday gun comes down 
-    /// counter: current count of how many times function has been called
-    /// gunName: name of gun to switch to 
-    /// </summary>
-    private IEnumerator PickWeapnAnimation(int counter, string gunName)
-    {
-        yield return new WaitForSeconds(1f / 180f);
-        if (counter < 180)
-        {
-            // disable primary gun and enable new primary gun
-            if (counter == 90)
-            {
-                currentGun.gunContainer.SetActive(false);
-                currentGun = playerStats.allGunInformation[gunName];
-                currentGun.gunContainer.SetActive(true);
-            }   
-
-            // Rotate gun upwards if counter is less han 90
-            if (counter < 90)
-            {
-                gunContainer.localRotation = Quaternion.Euler(-1f, 0, 0) * gunContainer.localRotation;
-            }
-            // Rotate gun downwards otherwise
-            else
-            {
-                gunContainer.localRotation = Quaternion.Euler(1f, 0, 0) * gunContainer.localRotation;
-            }
-            // Start over
-            StartCoroutine(PickWeapnAnimation(counter + 1, gunName));
-        }
-        else
-        {
-            // animation finished so reset variables
-            isAnimInProgress = false;
-            gunContainer.localRotation = new Quaternion(0f, 0f, 0f, 0f);
-            playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
-        }
-    }
-    /// <summary>
-    /// either makes gun jump around slightly in x/y directions or makes gun flip upwards depending on whether 
-    /// the current gun is automatic
-    /// Dependencies: SingleFireRecoil
-    /// </summary>
-    private void SimulateRecoil()
-    {
-        if (currentGun.isAutomatic)
-            gunPosition.localPosition = new Vector3(Random.Range(-.025f, .025f), Random.Range(-.025f, .025f), 0f);
-        else
-        {
-            isAnimInProgress = true;
-            InvokeRepeating("SingleFireRecoil", 0f, currentGun.fireRate / (singleFireRecoilDegree * 2));
-        }
-    }
-
-    /// <summary>
-    /// Rotates gun on the x axis up to a certain degree (singleFireRecoilDegree)
-    /// </summary>
-    private void SingleFireRecoil()
-    {
-        // Prevents reload animation and recoil animation from happening at the same time
-        if (currentGun.currentAmmo <= 0)
-        {
-            CancelInvoke("SingleFireRecoil");
-        }
-        animationCounter++;
-        if (animationCounter < (singleFireRecoilDegree * 2))
-        {
-            // Rotate upward if count is less than 20
-            if (animationCounter <= singleFireRecoilDegree / 2)
-            {
-                gunContainer.localRotation = Quaternion.Euler(-2f, 0, 0) * gunContainer.localRotation;
-            }
-            // otherwise rotate downward 
-            else
-            {
-                if (!(gunContainer.localRotation.eulerAngles.x < .1f))
-                    gunContainer.localRotation = Quaternion.Euler(1f, 0, 0) * gunContainer.localRotation;
-            }
-        }
-        else
-        {
-            // Animation finished so reset variables
-            gunContainer.localRotation = new Quaternion(0f, 0f, 0f, 0f);
-            isAnimInProgress = false;
-            animationCounter = 0;
-            CancelInvoke("SingleFireRecoil");
-        }
-    }    
-    
-    /// <summary>
-    /// Makes gun local position to be equal to (0, 0, 0)
-    /// </summary>
-    private void CorrectGunPosition()
-    {
-        gunPosition.localPosition = Vector3.zero;
-    }
-
-    /// <summary>
-    /// Instantiates grenade at GrenadeFirePoint and adds a forward force
-    /// </summary>
-    private void ThrowGrenade()
-    {
-        CurrentGrenades--;
-        playerUI.SetGrenadeText(CurrentGrenades);
-        Rigidbody grenade = Instantiate(grenadePrefab, grenadeFirePoint.position, transform.rotation).GetComponent<Rigidbody>();
-        grenade.AddForce(grenadeFirePoint.forward * grenadeThrowForce * Time.deltaTime, ForceMode.Impulse);
-    }
+    // END OF GRAPPLE ================================================================
 }

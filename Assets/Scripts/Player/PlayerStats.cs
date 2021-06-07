@@ -5,25 +5,6 @@ using UnityEngine.SceneManagement;
 
 public class PlayerStats : MonoBehaviour
 {
-    public class GunInformation
-    {
-        public string name;
-        public GameObject gunContainer;
-        public ParticleSystem muzzleFlash;
-        public int magSize;
-        public int ammoIncrementor;
-        public int reserveAmmo;
-        public int currentAmmo;
-        public float damage;
-        public float fireRate;
-        public float accuaracyOffset;
-        public float reloadTime;
-        public float range;
-        public bool isAutomatic;
-    }
-
-    public Dictionary<string, GunInformation> allGunInformation { get; private set; } = new Dictionary<string, GunInformation>();
-
     // Components
     public Transform camPosition;
 
@@ -46,27 +27,16 @@ public class PlayerStats : MonoBehaviour
     public Vector3 shopSpawnPosition = new Vector3(0, -150, 0);
 
     // Scripts
-    public EnemyStats enemyStats;
-    //public PlayerShooting playerShooting;
-    public ExperimentalPlayerShooting playerShooting;
+    public PlayerShooting playerShooting;
     public GameMenu gameMenu;
-    public WaveSpawner waveSpawner;
-    public GameManager gameManager;
+    private EnemyStats enemyStats;
+    private WaveSpawner waveSpawner;
+    private GameManager gameManager;
 
     // UI
     public PlayerUIScript playerUI;
 
     private Coroutine healOverTime;
-
-    // Gun models (GameObject) and muzzleflashes (ParticleSystem)
-    public GameObject gunPistol;
-    public GameObject gunSMG;
-    public GameObject gunAR;
-    public GameObject gunShotgun;
-    public ParticleSystem pistolMuzzleFlash;
-    public ParticleSystem smgMuzzleFlash;
-    public ParticleSystem arMuzzleFlash;
-    public ParticleSystem shotgunMuzzleFlash;
 
     // Interactable
     private InteractableObjects interactableObjects;
@@ -110,86 +80,12 @@ public class PlayerStats : MonoBehaviour
             gameMenu.PauseGame();
     }
 
-    /// <summary>
-    /// Fills the dictionary allGunInformation with hardcoded informaiton of each gun
-    /// </summary>
-    public void SetGunInformation()
-    {
-        allGunInformation["GunPistol"] = new GunInformation
-        {
-            name = "GunPistol",
-            gunContainer = gunPistol,
-            muzzleFlash = pistolMuzzleFlash,
-            magSize = 6,
-            ammoIncrementor = 60,
-            reserveAmmo = 60,
-            currentAmmo = 6,
-            damage = 30,
-            fireRate = .25f,
-            accuaracyOffset = .001f,
-            reloadTime = 1f,
-            range = 1000f,
-            isAutomatic = false,
-        };
-
-        allGunInformation["GunSMG"] = new GunInformation
-        {
-            name = "GunSMG",
-            gunContainer = gunSMG,
-            muzzleFlash = smgMuzzleFlash,
-            magSize = 30,
-            ammoIncrementor = 300,
-            reserveAmmo = 300,
-            currentAmmo = 30,
-            damage = 10,
-            fireRate = .1f,
-            accuaracyOffset = .025f,
-            reloadTime = .1f,
-            range = 1000f,
-            isAutomatic = true,
-        };
-
-        allGunInformation["GunAR"] = new GunInformation
-        {
-            name = "GunAR",
-            gunContainer = gunAR,
-            muzzleFlash = arMuzzleFlash,
-            magSize = 20,
-            ammoIncrementor = 260,
-            reserveAmmo = 260,
-            currentAmmo = 20,
-            damage = 20,
-            fireRate = .2f,
-            accuaracyOffset = .02f,
-            reloadTime = 1f,
-            range = 1000f,
-            isAutomatic = true,
-        };
-
-        allGunInformation["GunShotgun"] = new GunInformation
-        {
-            name = "GunShotgun",
-            gunContainer = gunShotgun,
-            muzzleFlash = shotgunMuzzleFlash,
-            magSize = 8,
-            ammoIncrementor = 80,
-            reserveAmmo = 80,
-            currentAmmo = 8,
-            damage = 10,
-            fireRate = .5f,
-            accuaracyOffset = .1f,
-            reloadTime = 1f,
-            range = 75f,
-            isAutomatic = false,
-        };
-    }
-
     private void OnCollisionEnter(Collision collision)
     {
         // Take damage if collision was an enemy
-        if(collision.gameObject.CompareTag("Enemy"))
+        if (collision.gameObject.CompareTag("Enemy"))
         {
-            TakeDamage(enemyStats.BaseDamage);
+            TakeDamage(collision.gameObject.GetComponent<EnemyStats>().BaseDamage);
         }
     }
 
@@ -201,6 +97,7 @@ public class PlayerStats : MonoBehaviour
     /// <param name="damage">variable to be subtracted from player healht</param>
     public void TakeDamage(float damage)
     {
+        Debug.Log(timeSinceLastHit);
         // Player can not be damaged until maxTimeInvicible amount of seconds
         if (timeSinceLastHit < maxTimeInvincible) return;
 
@@ -215,7 +112,7 @@ public class PlayerStats : MonoBehaviour
             healingFunctionActive = false;
         }
 
-        if(health <= 0)
+        if (health <= 0)
         {
             CurrentLives--;
             if (CurrentLives <= 0)
@@ -237,7 +134,7 @@ public class PlayerStats : MonoBehaviour
     private void Death()
     {
         PlayerData playerData = SaveSystem.LoadPlayerData();
-        if(playerData != null)
+        if (playerData != null)
         {
             // minus 1 from current wave number because we want completed waves 
             switch (PlayerPrefs.GetString("Difficulty"))
@@ -318,7 +215,7 @@ public class PlayerStats : MonoBehaviour
     {
         healingFunctionActive = true;
         yield return new WaitForSeconds(.1f);
-        if(health >= maxHealth)
+        if (health >= maxHealth)
             healingFunctionActive = false;
         else
         {
@@ -367,9 +264,9 @@ public class PlayerStats : MonoBehaviour
             case "MysteryBox":
                 if (!(interactableObjects.mysteryBox.isInteractable)) break;
                 interactableObjects.ShowUI(interactableObjects.mysteryBox.name);
-                
+
                 if (!shouldInteract) return;
-                
+
                 if (interactableObjects.IsWeaponSpawned)
                 {
                     playerShooting.PickUpWeapon(interactableObjects.DestroyGun());
@@ -385,9 +282,9 @@ public class PlayerStats : MonoBehaviour
             case "UpgradeGrapple":
                 if (!(interactableObjects.upgradeGrapple.isInteractable)) break;
                 interactableObjects.ShowUI(interactableObjects.upgradeGrapple.name);
-                
+
                 if (!shouldInteract) break;
-                
+
                 if (CurrentPoints >= interactableObjects.upgradeGrapple.price)
                 {
                     CurrentPoints -= interactableObjects.upgradeGrapple.price;
@@ -400,7 +297,7 @@ public class PlayerStats : MonoBehaviour
             case "UpgradeDamage":
                 if (!(interactableObjects.upgradeDamage.isInteractable)) break;
                 interactableObjects.ShowUI(interactableObjects.upgradeDamage.name);
-                
+
                 if (!shouldInteract) break;
 
                 if (CurrentPoints >= interactableObjects.upgradeDamage.price)
@@ -414,7 +311,7 @@ public class PlayerStats : MonoBehaviour
             case "ShockWaveIncrease":
                 if (!(interactableObjects.shockWaveIncrease.isInteractable)) break;
                 interactableObjects.ShowUI(interactableObjects.shockWaveIncrease.name);
-                
+
                 if (!shouldInteract) break;
 
                 if (CurrentPoints >= interactableObjects.shockWaveIncrease.price)
@@ -430,7 +327,7 @@ public class PlayerStats : MonoBehaviour
             case "ExtraLife":
                 if (!(interactableObjects.extraLife.isInteractable)) break;
                 interactableObjects.ShowUI(interactableObjects.extraLife.name);
-                
+
                 if (!shouldInteract) break;
 
                 if (CurrentPoints >= interactableObjects.extraLife.price)
@@ -446,10 +343,10 @@ public class PlayerStats : MonoBehaviour
             case "RefillAmmo":
                 if (!(interactableObjects.refillAmmo.isInteractable)) break;
                 interactableObjects.ShowUI(interactableObjects.refillAmmo.name);
-                
+
                 if (!shouldInteract) break;
 
-                if(CurrentPoints >= interactableObjects.refillAmmo.price)
+                if (CurrentPoints >= interactableObjects.refillAmmo.price)
                 {
                     CurrentPoints -= interactableObjects.refillAmmo.price;
                     ChangeInPointValue();
@@ -494,7 +391,6 @@ public class PlayerStats : MonoBehaviour
     {
         PlayerStats playerStats = FindObjectOfType<PlayerStats>();
         playerStats.PointMultiplier = 1;
-        Debug.Log("Player point multiplier: " + playerStats.PointMultiplier);
         CancelInvoke("DeactivateDoublePoints");
     }
 }

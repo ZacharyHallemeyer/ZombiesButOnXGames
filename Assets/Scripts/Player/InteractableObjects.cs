@@ -79,7 +79,7 @@ public class InteractableObjects : MonoBehaviour
     public PlayerStats playerStats;
     public TextMeshProUGUI text;
     public PlayerUIScript playerUI;
-    public GameManager gameManager;
+    private GameManager gameManager;
 
     private InteractableObject currentObject;
 
@@ -89,7 +89,6 @@ public class InteractableObjects : MonoBehaviour
     private GameObject spawnedGun;
     private Transform mysteryBoxTransform;
     private Coroutine selfDestructCoroutine;
-    private Coroutine hideUICoroutine;
     public string gunName;
     public bool IsWeaponSpawned { get; private set; } = false;
 
@@ -102,6 +101,8 @@ public class InteractableObjects : MonoBehaviour
             playerShooting = FindObjectOfType<PlayerShooting>();
         if (playerStats == null)
             playerStats = FindObjectOfType<PlayerStats>();
+        if (gameManager == null)
+            gameManager = FindObjectOfType<GameManager>();
         if (text == null)
             text = GameObject.Find("InteractableUI").GetComponent<TextMeshProUGUI>();
 
@@ -267,11 +268,11 @@ public class InteractableObjects : MonoBehaviour
     {
         upgradeDamage.price += upgradeDamage.priceIncrement;
         currentObject.isInteractable = false;
-        foreach (string key in playerStats.allGunInformation.Keys)
+        foreach (string key in playerShooting.allGunInformation.Keys)
         {
             if(playerShooting.currentGun.name == key)
             {
-                playerStats.allGunInformation[key].damage += playerStats.allGunInformation[key].damage / 2;
+                playerShooting.allGunInformation[key].damage += playerShooting.allGunInformation[key].damage / 2;
             }
         }
         StartCoroutine(TurnOnInteractable(currentObject));

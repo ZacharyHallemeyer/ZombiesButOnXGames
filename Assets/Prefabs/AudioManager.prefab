@@ -45,25 +45,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sounds:
   - name: GunShotgun
-    clip: {fileID: 8300000, guid: 8e54f00b82e191a4488b7a394355937c, type: 3}
+    clip: {fileID: 8300000, guid: 3dc8d26c275ff9645a51da3939c20727, type: 3}
     volume: 0.25
     pitch: 1
     looping: 0
     source: {fileID: 0}
   - name: GunSMG
-    clip: {fileID: 8300000, guid: 993a0dcd0bc844d4a8195e02e94ea159, type: 3}
+    clip: {fileID: 8300000, guid: b7c89d2fdf9d4894286a891384849b76, type: 3}
     volume: 0.25
     pitch: 1
-    looping: 0
+    looping: 1
     source: {fileID: 0}
   - name: GunAR
-    clip: {fileID: 8300000, guid: 4dab5dd4900ae394284af95e424a7887, type: 3}
+    clip: {fileID: 8300000, guid: e6ed21b4f72aeb44a9d99ad970167a42, type: 3}
     volume: 0.25
     pitch: 1
-    looping: 0
+    looping: 1
     source: {fileID: 0}
   - name: GunPistol
-    clip: {fileID: 8300000, guid: e2a58b6b702bdbd4cada96d1ee9077be, type: 3}
+    clip: {fileID: 8300000, guid: c1c4f3defb1b1ec429d30add2764dd39, type: 3}
     volume: 0.25
     pitch: 1
     looping: 0
@@ -75,7 +75,7 @@ MonoBehaviour:
     looping: 1
     source: {fileID: 0}
   - name: GunReload
-    clip: {fileID: 8300000, guid: f34aa2a356a8bec449b472d535473f96, type: 3}
+    clip: {fileID: 8300000, guid: c3eca117c56436a4780a9907d61548a5, type: 3}
     volume: 0.474
     pitch: 1
     looping: 0
