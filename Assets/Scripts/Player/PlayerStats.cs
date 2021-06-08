@@ -32,6 +32,7 @@ public class PlayerStats : MonoBehaviour
     private EnemyStats enemyStats;
     private WaveSpawner waveSpawner;
     private GameManager gameManager;
+    private InputMaster inputMaster;
 
     // UI
     public PlayerUIScript playerUI;
@@ -49,12 +50,23 @@ public class PlayerStats : MonoBehaviour
     /// </summary>
     private void Awake()
     {
+        inputMaster = new InputMaster();
         if (gameManager == null)
             gameManager = FindObjectOfType<GameManager>();
         if (waveSpawner == null)
             waveSpawner = FindObjectOfType<WaveSpawner>();
         spawnPosition = transform.position;
         health = maxHealth;
+    }
+
+    public void OnEnable()
+    {
+        inputMaster.Enable();
+    }
+
+    public void OnDisable()
+    {
+        inputMaster.Disable();
     }
 
     private void Update()
@@ -73,10 +85,10 @@ public class PlayerStats : MonoBehaviour
 
         if (CheckForInteractableObject())
         {
-            shouldInteract = Input.GetKeyDown(KeyCode.E);
+            shouldInteract = inputMaster.Player.Interact.triggered;
             HandleInteractable();
         }
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (inputMaster.Player.Escape.triggered)
             gameMenu.PauseGame();
     }
 

@@ -7,7 +7,7 @@ public class SurvivePlayerStats : MonoBehaviour
 {
     // Components
     public Transform camPosition;
-
+    private InputMaster inputMaster;
 
     // Player stats and Power up stats
     public int CurrentPoints { get; set; } = 0;
@@ -18,7 +18,6 @@ public class SurvivePlayerStats : MonoBehaviour
     // Environment generator script uses this vector as to where to spawn shop room
 
     // Scripts
-    private EnemyStats enemyStats;
     public SurvivalPlayerShoot playerShooting;
     public SurvivalGameMenu gameMenu;
 
@@ -30,15 +29,27 @@ public class SurvivePlayerStats : MonoBehaviour
     /// </summary>
     private void Awake()
     {
+        inputMaster = new InputMaster();
         CurrentPoints = 0;
         spawnPosition = transform.position;
     }
+
+    public void OnEnable()
+    {
+        inputMaster.Enable();
+    }
+
+    public void OnDisable()
+    {
+        inputMaster.Disable();
+    }
+
 
     private void Update()
     {
         CurrentPoints = (int) Time.timeSinceLevelLoad;
         playerUI.SetPointText(CurrentPoints);
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (inputMaster.Player.Escape.triggered)
             gameMenu.PauseGame();
     }
 

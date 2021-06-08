@@ -1,10 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerShooting : MonoBehaviour
 {
     // General Variables
+
+    // set up in Awake
+    private InputMaster inputMaster;
     public Transform cam, player;
     public PlayerStats playerStats;
     public PlayerMovement playerMovement;
@@ -24,6 +28,7 @@ public class PlayerShooting : MonoBehaviour
     public float maxGrappleDistance = 200f, maxGrappleTime = 3f, grappleRecoveryIncrement = .01f;
     public float timeLeftToGrapple;
 
+    public bool releasedGrappleControlSinceLastGrapple = true;
     public bool IsGrappling { get; private set; }
     public Vector3 GrapplePoint { get; private set; }
 
@@ -86,10 +91,11 @@ public class PlayerShooting : MonoBehaviour
 
     public GunInformation currentGun;
     public GunInformation secondaryGun;
-    private ParticleSystem.ShapeModule  shapeModule;
+    private ParticleSystem.ShapeModule shapeModule;
 
     public LayerMask whatIsShootable;
     public int currentParticleIndex;
+    public bool isShooting = false;
 
     // Components 
     public Transform gunContainer;
@@ -108,7 +114,12 @@ public class PlayerShooting : MonoBehaviour
     // Item variables
     public int CurrentShockWaves { get; set; } = 3;
     public PlayerItems playerItems;
-    
+
+    private void Awake()
+    {
+        inputMaster = new InputMaster();
+    }
+
     private void Start()
     {
         // Set up items and grenades 
@@ -120,7 +131,7 @@ public class PlayerShooting : MonoBehaviour
 
         int index = 0;
         gunNames = new string[allGunInformation.Count];
-        foreach(string str in allGunInformation.Keys)
+        foreach (string str in allGunInformation.Keys)
         {
             gunNames[index] = str;
             index++;
@@ -130,7 +141,7 @@ public class PlayerShooting : MonoBehaviour
         {
             currentGun = allGunInformation[gunNames[Random.Range(0, gunNames.Length)]];
             secondaryGun = allGunInformation[gunNames[Random.Range(0, gunNames.Length)]];
-        } while ( currentGun.name.Equals(secondaryGun.name) );
+        } while (currentGun.name.Equals(secondaryGun.name));
 
         shapeModule = currentGun.gun.shape;
         currentGun.gunContainer.SetActive(true);
@@ -142,6 +153,16 @@ public class PlayerShooting : MonoBehaviour
         lineRender = GetComponent<LineRenderer>();
 
         StartCoroutine(SetAudioManager());
+    }
+
+    public void OnEnable()
+    {
+        inputMaster.Enable();
+    }
+
+    public void OnDisable()
+    {
+        inputMaster.Disable();
     }
 
     /// <summary>
@@ -195,7 +216,7 @@ public class PlayerShooting : MonoBehaviour
             damage = 10,
             fireRate = .1f,
             accuaracyOffset = .025f,
-            reloadTime = .1f,
+            reloadTime = 1f,
             range = 1000f,
             rightHandPosition = -.3f,
             leftHandPosition = -1.5f,
@@ -249,62 +270,71 @@ public class PlayerShooting : MonoBehaviour
     {
         // Handle grapple =========================================
         // Player must have more than 25% of grapple left to start grapple
-        if (Input.GetMouseButtonDown(2) && timeLeftToGrapple > (maxGrappleTime * .25))
-            StartGrapple();
-        else if ( (Input.GetMouseButtonUp(2) || Mathf.Abs( (player.position - GrapplePoint).magnitude ) < 5f )
-                 && IsGrappling)
+        if(!IsGrappling)
+        {
+            if (inputMaster.Player.Grapple.ReadValue<float>() != 0 
+                    && timeLeftToGrapple > (maxGrappleTime * .25)
+                    && releasedGrappleControlSinceLastGrapple)
+            {
+                releasedGrappleControlSinceLastGrapple = false;
+                StartGrapple();
+            }
+        }
+        else if (inputMaster.Player.Grapple.ReadValue<float>() == 0 
+                || Mathf.Abs((player.position - GrapplePoint).magnitude) < 5f 
+                && IsGrappling)
             StopGrapple();
 
         // Handle gun shooting ====================================
         if (!isAnimInProgress)
         {
             // Switching between primary and secondary by using mouse scroll wheel or '1' on keyboard
-            if (Input.GetKeyDown(KeyCode.Alpha1))
-                ChangeCurrentWeapon();
-            else if (Input.mouseScrollDelta.y != 0)
+            if (inputMaster.Player.SwitchWeaponMouseWheel.ReadValue<Vector2>().y != 0
+                || inputMaster.Player.SwitchWeaponButton.triggered)
             {
-                scrollingCounter++;
-                if (scrollingCounter > 1)
-                {
-                    scrollingCounter = 0;
-                    ChangeCurrentWeapon();
-                }
+                ChangeCurrentWeapon();
             }
+            
 
 
             // Shoot
-            if (Input.GetKeyDown(KeyCode.Mouse0) && currentGun.currentAmmo > 0)
+            if(!isShooting)
+            {
+                if (inputMaster.Player.Shoot.ReadValue<float>() != 0 && currentGun.currentAmmo > 0)
+                {
+                    if (currentGun.isAutomatic)
+                    {
+                        isShooting = true;
+                        ParticleSystem.RotationOverLifetimeModule rot = currentGun.gun.rotationOverLifetime;
+                        rot.enabled = true;
+                        InvokeRepeating("AutomaticShoot", 0f, currentGun.fireRate);
+                    }
+                    else
+                        SingleFireShoot();
+                }
+            }
+            else if (inputMaster.Player.Shoot.ReadValue<float>() == 0)
             {
                 if (currentGun.isAutomatic)
                 {
-                    ParticleSystem.RotationOverLifetimeModule rot = currentGun.gun.rotationOverLifetime;
-                    rot.enabled = true;
-                    InvokeRepeating("AutomaticShoot", 0f, currentGun.fireRate);
-                }
-                else
-                    SingleFireShoot();
-            }
-            else if (Input.GetKeyUp(KeyCode.Mouse0))
-            {
-                if(currentGun.isAutomatic)
-                {
                     StopAutomaticShoot();
+                    isShooting = false;
                 }
             }
             // Reload
-            else if (currentGun.currentAmmo < currentGun.magSize && Input.GetKeyDown(KeyCode.R) && currentGun.reserveAmmo > 0)
+            if (currentGun.currentAmmo < currentGun.magSize && inputMaster.Player.Reload.triggered 
+                     && currentGun.reserveAmmo > 0)
             {
                 StopAutomaticShoot();
-                isAnimInProgress = true;
                 Reload();
             }
 
             // Handle Grenades
-            if (Input.GetKeyDown(KeyCode.G) && CurrentGrenades > 0)
+            if (inputMaster.Player.Grenade.triggered && CurrentGrenades > 0)
                 ThrowGrenade();
         }
         // Handle items
-        if (Input.GetKeyDown(KeyCode.Q) && CurrentShockWaves > 0)
+        if (inputMaster.Player.Special.triggered && CurrentShockWaves > 0)
         {
             CurrentShockWaves--;
             playerUI.SetShockWaveText(CurrentShockWaves);
@@ -316,7 +346,7 @@ public class PlayerShooting : MonoBehaviour
     private void LateUpdate()
     {
         DrawRope();
-        if(IsGrappling)
+        if (IsGrappling)
             ContinueGrapple();
     }
 
@@ -325,7 +355,7 @@ public class PlayerShooting : MonoBehaviour
     /// </summary>
     private void AutomaticShoot()
     {
-        if(!isAudioPlaying)
+        if (!isAudioPlaying)
         {
             audioManager.Play(currentGun.name);
             isAudioPlaying = true;
@@ -360,7 +390,7 @@ public class PlayerShooting : MonoBehaviour
             EnemyStats enemyStats = hit.collider.GetComponent<EnemyStats>();
             if (enemyStats != null)
                 enemyStats.TakeDamage(currentGun.damage);
-                
+
 
         }
     }
@@ -369,11 +399,12 @@ public class PlayerShooting : MonoBehaviour
     {
         ParticleSystem.RotationOverLifetimeModule rot = currentGun.gun.rotationOverLifetime;
         rot.enabled = false;
-        if(isAudioPlaying)
+        if (isAudioPlaying)
         {
             isAudioPlaying = false;
             audioManager.Stop(currentGun.name);
         }
+        isShooting = false;
         CancelInvoke("AutomaticShoot");
     }
 
@@ -419,12 +450,12 @@ public class PlayerShooting : MonoBehaviour
                 if (enemyStats != null)
                     enemyStats.TakeDamage(currentGun.damage);
             }
-            
+
         }
         // shotgun
         else
         {
-        Vector3 trajectory;
+            Vector3 trajectory;
             for (int i = 0; i < 10; i++)
             {
                 trajectory = firePoint.forward + new Vector3(Random.Range(-currentGun.accuaracyOffset, currentGun.accuaracyOffset),
@@ -444,6 +475,8 @@ public class PlayerShooting : MonoBehaviour
                 }
             }
         }
+
+        isShooting = false;
 
         // Reload if current ammo is zero
         if (currentGun.currentAmmo <= 0)
@@ -637,17 +670,6 @@ public class PlayerShooting : MonoBehaviour
         StartCoroutine(PickWeapnAnimationExpand(counter + 1, gunName));
     }
 
-
-    /// <summary>
-    /// plays animation where primary gun is lifted over head and seconday gun comes down 
-    /// counter: current count of how many times function has been called
-    /// gunName: name of gun to switch to 
-    /// </summary>
-    private IEnumerator PickWeapnAnimation(int counter, string gunName)
-    {
-        yield return new WaitForEndOfFrame();
-    }
-
     /// <summary>
     /// Instantiates grenade at GrenadeFirePoint and adds a forward force
     /// </summary>
@@ -658,6 +680,14 @@ public class PlayerShooting : MonoBehaviour
         Rigidbody grenade = Instantiate(grenadePrefab, grenadeFirePoint.position, transform.rotation).GetComponent<Rigidbody>();
         grenade.AddForce(grenadeFirePoint.forward * grenadeThrowForce * Time.deltaTime, ForceMode.Impulse);
     }
+
+    private void ShockWave()
+    {
+        CurrentShockWaves--;
+        playerUI.SetShockWaveText(CurrentShockWaves);
+        playerItems.StartShockWave();
+    }
+
     // GRAPPLE ==============================================================================
 
     /// <summary>
@@ -736,6 +766,7 @@ public class PlayerShooting : MonoBehaviour
     private void StopGrapple()
     {
         StartCoroutine(GrappleRecovery());
+        releasedGrappleControlSinceLastGrapple = true;
         playerRB.useGravity = true;
         lineRender.positionCount = 0;
         IsGrappling = false;

@@ -8,6 +8,8 @@ public class SurvivalPlayerMovement : Movement
     public Transform playerCam;
     public Transform orientation;
     public SurvivalPlayerShoot playerShooting;
+    public PlayerUIScript playerUIScript;
+    private InputMaster inputMaster;
 
     //Other
     private Rigidbody rb;
@@ -19,7 +21,7 @@ public class SurvivalPlayerMovement : Movement
     //Rotation and look
     private float xRotation;
     private float desiredX;
-    private float sensitivity = 50f;
+    private float sensitivity = 2000f;
     private float sensMultiplier = 1f;
 
     //Movement
@@ -59,15 +61,27 @@ public class SurvivalPlayerMovement : Movement
     public float maxWallRunCameraTilt, wallRunCameraTilt;
     private float wallRunSpeed = 100f, maxWallRunSpeed = 40f;
     public float timeOnWall, maxtimeOnWall = 3f;
-    private bool isWallRight, isWallLeft, isWallForward, isWallBackward;
+    public bool isWallRight, isWallLeft, isWallForward, isWallBackward;
     public Transform gunPosition;
 
     public bool IsOnWall { get; private set; }
 
     void Awake()
     {
+        inputMaster = new InputMaster();
         rb = GetComponent<Rigidbody>();
     }
+
+    public void OnEnable()
+    {
+        inputMaster.Enable();
+    }
+
+    public void OnDisable()
+    {
+        inputMaster.Disable();
+    }
+
 
     void Start()
     {
@@ -94,8 +108,8 @@ public class SurvivalPlayerMovement : Movement
     /// </summary>
     private void MyInput()
     {
-        x = Input.GetAxisRaw("Horizontal");
-        y = Input.GetAxisRaw("Vertical");
+        x = inputMaster.Player.Movement.ReadValue<Vector2>().x;
+        y = inputMaster.Player.Movement.ReadValue<Vector2>().y;
 
         // increase timer if player is motionless on wall. Otherwise reset timer
         if (IsOnWall)
@@ -104,7 +118,7 @@ public class SurvivalPlayerMovement : Movement
             timeOnWall = 0;
 
         // Jump if jump is pressed and num of jumps are more than 0
-        if (Input.GetButtonDown("Jump") && jumpsAvaliable > 0)
+        if (inputMaster.Player.Jump.triggered && jumpsAvaliable > 0)
         {
             if (IsOnWall)
                 // Send in false because player is not motionless
@@ -113,14 +127,14 @@ public class SurvivalPlayerMovement : Movement
                 Jump();
         }
 
+        // Crouching
         // crouch if not on wall and input from left shift or mouse 4
-        crouching = (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.Mouse4)) && !IsOnWall && !playerShooting.IsGrappling;
-
-        //Crouching
-        if ((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.Mouse4)) && !IsOnWall! && !playerShooting.IsGrappling)
-            StartCrouch();
-        if ((Input.GetKeyUp(KeyCode.LeftControl) || Input.GetKeyUp(KeyCode.Mouse4)) && !IsOnWall && !playerShooting.IsGrappling)
-            StopCrouch();
+        if (!crouching)
+            if (inputMaster.Player.Crouch.ReadValue<float>() > 0 && !IsOnWall! && !playerShooting.IsGrappling)
+                StartCrouch();
+        if (crouching)
+            if (inputMaster.Player.Crouch.ReadValue<float>() == 0 && !IsOnWall && !playerShooting.IsGrappling)
+                StopCrouch();
     }
 
     /// <summary>
@@ -128,7 +142,7 @@ public class SurvivalPlayerMovement : Movement
     /// </summary>
     private void StartCrouch()
     {
-        //playerShooting.isAnimInProgress = true;
+        crouching = true;
         transform.localScale = crouchScale;
         transform.position = new Vector3(transform.position.x, transform.position.y - 0.5f, transform.position.z);
         if (rb.velocity.magnitude > 0.5f)
@@ -137,7 +151,7 @@ public class SurvivalPlayerMovement : Movement
         // Prevents guns and other such objects from shrinking
         foreach (Transform child in gameObject.transform)
             child.localScale = playerScale;
-        //InvokeRepeating("StartCrouchAnimation", 0, .1f / crouchGunDegree);
+        playerUIScript.ChangeToCrouch();
     }
 
     /// <summary>
@@ -145,13 +159,14 @@ public class SurvivalPlayerMovement : Movement
     /// </summary>
     public void StopCrouch()
     {
-        //playerShooting.isAnimInProgress = true;
+        crouching = false;
         transform.localScale = playerScale;
         transform.position = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z);
 
         // Prevents guns and other such objects from expanding larger than intended
         foreach (Transform child in gameObject.transform)
             child.localScale = crouchScale;
+        playerUIScript.ChangeToStand();
     }
 
     /// <summary>
@@ -303,8 +318,10 @@ public class SurvivalPlayerMovement : Movement
     /// </summary>
     private void Look()
     {
-        float mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.fixedDeltaTime * sensMultiplier;
-        float mouseY = Input.GetAxis("Mouse Y") * sensitivity * Time.fixedDeltaTime * sensMultiplier;
+        float mouseX = Camera.main.ScreenToViewportPoint(inputMaster.Player.MouseLook.ReadValue<Vector2>()).x
+                       * sensitivity * Time.fixedDeltaTime * sensMultiplier;
+        float mouseY = Camera.main.ScreenToViewportPoint(inputMaster.Player.MouseLook.ReadValue<Vector2>()).y
+                       * sensitivity * Time.fixedDeltaTime * sensMultiplier;
 
         //Find current look rotation
         Vector3 rot = playerCam.transform.localRotation.eulerAngles;

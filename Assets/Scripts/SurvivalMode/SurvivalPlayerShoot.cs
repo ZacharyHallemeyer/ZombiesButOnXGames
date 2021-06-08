@@ -9,8 +9,10 @@ public class SurvivalPlayerShoot : MonoBehaviour
     public SurvivePlayerStats playerStats;
     public SurvivalPlayerMovement playerMovement;
     private AudioManager audioManager;
+    private InputMaster inputMaster;
 
     // Grappling Variables ==================
+
     // Components
     private LineRenderer lineRender;
     private SpringJoint joint;
@@ -19,6 +21,7 @@ public class SurvivalPlayerShoot : MonoBehaviour
 
     public LayerMask whatIsGrapple;
     private Coroutine grappleRecovery;
+    public bool releasedGrappleControlSinceLastGrapple = true;
 
     // Numerical variables
     public float maxGrappleDistance = 200f, maxGrappleTime = 3f, grappleRecoveryIncrement = .01f;
@@ -29,6 +32,22 @@ public class SurvivalPlayerShoot : MonoBehaviour
 
     // UI
     public PlayerUIScript playerUI;
+
+    private void Awake()
+    {
+        inputMaster = new InputMaster();
+    }
+
+    public void OnEnable()
+    {
+        inputMaster.Enable();
+    }
+
+    public void OnDisable()
+    {
+        inputMaster.Disable();
+    }
+
 
     private void Start()
     {
@@ -54,10 +73,19 @@ public class SurvivalPlayerShoot : MonoBehaviour
     private void Update()
     {
         // Player must have more than 25% of grapple left to start grapple
-        if (Input.GetMouseButtonDown(2) && timeLeftToGrapple > (maxGrappleTime * .25))
-            StartGrapple();
-        else if ((Input.GetMouseButtonUp(2) || Mathf.Abs((player.position - GrapplePoint).magnitude) < 5f)
-                 && IsGrappling)
+        if (!IsGrappling)
+        {
+            if (inputMaster.Player.Grapple.ReadValue<float>() != 0
+                    && timeLeftToGrapple > (maxGrappleTime * .25)
+                    && releasedGrappleControlSinceLastGrapple)
+            {
+                releasedGrappleControlSinceLastGrapple = false;
+                StartGrapple();
+            }
+        }
+        else if (inputMaster.Player.Grapple.ReadValue<float>() == 0
+                || Mathf.Abs((player.position - GrapplePoint).magnitude) < 5f
+                && IsGrappling)
             StopGrapple();
     }
 
@@ -145,6 +173,7 @@ public class SurvivalPlayerShoot : MonoBehaviour
     private void StopGrapple()
     {
         StartCoroutine(GrappleRecovery());
+        releasedGrappleControlSinceLastGrapple = true;
         playerRB.useGravity = true;
         lineRender.positionCount = 0;
         IsGrappling = false;

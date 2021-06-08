@@ -10,6 +10,7 @@ public class PlayerMovement : Movement
     public Transform orientation;
     public PlayerShooting playerShooting;
     public PlayerUIScript playerUIScript;
+    private InputMaster inputMaster;
 
     //Other
     private Rigidbody rb;
@@ -21,7 +22,7 @@ public class PlayerMovement : Movement
     //Rotation and look
     private float xRotation;
     private float desiredX;
-    private float sensitivity = 50f;
+    private float sensitivity = 2000f;
     private float sensMultiplier = 1f;
 
     //Movement
@@ -71,6 +72,17 @@ public class PlayerMovement : Movement
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        inputMaster = new InputMaster();
+    }
+
+    public void OnEnable()
+    {
+        inputMaster.Enable();
+    }
+
+    public void OnDisable()
+    {
+        inputMaster.Disable();
     }
 
     void Start()
@@ -94,12 +106,12 @@ public class PlayerMovement : Movement
     }
 
     /// <summary>
-    /// Find user input. Should put this in its own class but im lazy
+    /// Find user input
     /// </summary>
     private void MyInput()
     {
-        x = Input.GetAxisRaw("Horizontal");
-        y = Input.GetAxisRaw("Vertical");
+        x = inputMaster.Player.Movement.ReadValue<Vector2>().x;
+        y = inputMaster.Player.Movement.ReadValue<Vector2>().y;
 
         // increase timer if player is motionless on wall. Otherwise reset timer
         if (IsOnWall)
@@ -108,7 +120,7 @@ public class PlayerMovement : Movement
             timeOnWall = 0;
 
         // Jump if jump is pressed and num of jumps are more than 0
-        if (Input.GetButtonDown("Jump") && jumpsAvaliable > 0)
+        if (inputMaster.Player.Jump.triggered && jumpsAvaliable > 0)
         {
             if (IsOnWall)
                 // Send in false because player is not motionless
@@ -117,14 +129,14 @@ public class PlayerMovement : Movement
                 Jump();
         }
 
+        // Crouching
         // crouch if not on wall and input from left shift or mouse 4
-        crouching = (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.Mouse4)) && !IsOnWall && !playerShooting.IsGrappling;
-
-        //Crouching
-        if ((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.Mouse4)) && !IsOnWall! && !playerShooting.IsGrappling)
-            StartCrouch();
-        if ((Input.GetKeyUp(KeyCode.LeftControl) || Input.GetKeyUp(KeyCode.Mouse4)) && !IsOnWall && !playerShooting.IsGrappling)
-            StopCrouch();
+        if (!crouching)
+            if (inputMaster.Player.Crouch.ReadValue<float>() > 0 && !IsOnWall! && !playerShooting.IsGrappling)
+                StartCrouch();
+        if (crouching)
+            if (inputMaster.Player.Crouch.ReadValue<float>() == 0 && !IsOnWall && !playerShooting.IsGrappling)
+                StopCrouch();
     }
 
     /// <summary>
@@ -132,6 +144,7 @@ public class PlayerMovement : Movement
     /// </summary>
     private void StartCrouch()
     {
+        crouching = true;
         transform.localScale = crouchScale;
         transform.position = new Vector3(transform.position.x, transform.position.y - 0.5f, transform.position.z);
         if (rb.velocity.magnitude > 0.5f)
@@ -148,7 +161,7 @@ public class PlayerMovement : Movement
     /// </summary>
     public void StopCrouch()
     {
-        //playerShooting.isAnimInProgress = true;
+        crouching = false;
         transform.localScale = playerScale;
         transform.position = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z);
 
@@ -234,13 +247,8 @@ public class PlayerMovement : Movement
         // Wall Running
         else if (IsOnWall)
         {
-            if(isWallForward && y > 0)
-                Climb();
-            else
-            {
-                rb.AddForce(orientation.transform.right * x * wallRunSpeed * Time.deltaTime, ForceMode.Impulse);
-                rb.AddForce(orientation.transform.forward * y * wallRunSpeed * Time.deltaTime, ForceMode.Impulse);
-            }
+            rb.AddForce(orientation.transform.right * x * wallRunSpeed * Time.deltaTime, ForceMode.Impulse);
+            rb.AddForce(orientation.transform.forward * y * wallRunSpeed * Time.deltaTime, ForceMode.Impulse);
         }
         // Normal movement on ground
         else if (!playerShooting.IsGrappling)
@@ -255,6 +263,13 @@ public class PlayerMovement : Movement
     /// </summary>
     private void Jump()
     {
+        if (jumpsAvaliable < 0) return;
+        if (IsOnWall)
+        {
+            WallJump(false);
+            return;
+        }
+
         jumpsAvaliable -= 2;
 
         //Add jump forces
@@ -307,8 +322,10 @@ public class PlayerMovement : Movement
     /// </summary>
     private void Look()
     {
-        float mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.fixedDeltaTime * sensMultiplier;
-        float mouseY = Input.GetAxis("Mouse Y") * sensitivity * Time.fixedDeltaTime * sensMultiplier;
+        float mouseX = Camera.main.ScreenToViewportPoint(inputMaster.Player.MouseLook.ReadValue<Vector2>()).x 
+                       * sensitivity * Time.fixedDeltaTime * sensMultiplier;
+        float mouseY = Camera.main.ScreenToViewportPoint(inputMaster.Player.MouseLook.ReadValue<Vector2>()).y 
+                       * sensitivity * Time.fixedDeltaTime * sensMultiplier;
 
         //Find current look rotation
         Vector3 rot = playerCam.transform.localRotation.eulerAngles;
