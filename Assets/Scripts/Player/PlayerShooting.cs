@@ -25,10 +25,12 @@ public class PlayerShooting : MonoBehaviour
     private Coroutine grappleRecovery;
 
     // Numerical variables
-    public float maxGrappleDistance = 200f, maxGrappleTime = 3f, grappleRecoveryIncrement = .01f;
+    private float maxGrappleDistance = 200f, minGrappleDistance = 10f;
+    public float maxGrappleTime = 3f, grappleRecoveryIncrement = .01f;
     public float timeLeftToGrapple;
 
-    public bool releasedGrappleControlSinceLastGrapple = true;
+    private bool releasedGrappleControlSinceLastGrapple = true;
+    public bool IsGrappleRecoveryInProgress { get; set; } = false; 
     public bool IsGrappling { get; private set; }
     public Vector3 GrapplePoint { get; private set; }
 
@@ -117,7 +119,9 @@ public class PlayerShooting : MonoBehaviour
 
     private void Awake()
     {
+        SetControls setControls = gameObject.AddComponent<SetControls>();
         inputMaster = new InputMaster();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
     }
 
     private void Start()
@@ -280,10 +284,13 @@ public class PlayerShooting : MonoBehaviour
                 StartGrapple();
             }
         }
-        else if (inputMaster.Player.Grapple.ReadValue<float>() == 0 
-                || Mathf.Abs((player.position - GrapplePoint).magnitude) < 5f 
-                && IsGrappling)
-            StopGrapple();
+        if(!releasedGrappleControlSinceLastGrapple)
+        {
+            if (inputMaster.Player.Grapple.ReadValue<float>() == 0 
+                    || Mathf.Abs((player.position - GrapplePoint).magnitude) < 5f 
+                    && IsGrappling)
+                StopGrapple();
+        }
 
         // Handle gun shooting ====================================
         if (!isAnimInProgress)
@@ -700,6 +707,14 @@ public class PlayerShooting : MonoBehaviour
         Ray ray = new Ray(cam.position, cam.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, maxGrappleDistance, whatIsGrapple ))
         {
+            if (Vector3.Distance(transform.position, hit.point) < minGrappleDistance)
+                return;
+            if (IsGrappleRecoveryInProgress)
+            {
+                IsGrappleRecoveryInProgress = false;
+                CancelInvoke("GrappleRecovery");
+            }
+
             playerMovement.StopCrouch();
             // Turn off grapple recovery
             if (grappleRecovery != null)
@@ -765,7 +780,11 @@ public class PlayerShooting : MonoBehaviour
     /// </summary>
     private void StopGrapple()
     {
-        StartCoroutine(GrappleRecovery());
+        if(!IsGrappleRecoveryInProgress)
+        {
+            IsGrappleRecoveryInProgress = true;
+            InvokeRepeating("GrappleRecovery", 0f, .1f);
+        }
         releasedGrappleControlSinceLastGrapple = true;
         playerRB.useGravity = true;
         lineRender.positionCount = 0;
@@ -775,18 +794,18 @@ public class PlayerShooting : MonoBehaviour
 
 
     /// <summary>
-    /// adds time to player's amount of grapple left by calling itself recursively 
+    /// adds time to player's amount of grapple left. Must be called through invoke repeating with
+    /// a repeat time of .1 seconds of scaled time
     /// </summary>
-    /// <returns>waits for .1 seconds</returns>
-    public IEnumerator GrappleRecovery()
+    public void GrappleRecovery()
     {
-        yield return new WaitForSeconds(.1f);
-        if(timeLeftToGrapple <= maxGrappleTime)
+        if (timeLeftToGrapple <= maxGrappleTime)
         {
             timeLeftToGrapple += grappleRecoveryIncrement;
             playerUI.SetGrapple(timeLeftToGrapple);
-            grappleRecovery = StartCoroutine(GrappleRecovery());
         }
+        else
+            CancelInvoke("GrappleRecovery");
     }
 
     // END OF GRAPPLE ================================================================

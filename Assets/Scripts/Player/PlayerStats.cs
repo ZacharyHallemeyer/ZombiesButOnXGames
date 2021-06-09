@@ -50,7 +50,9 @@ public class PlayerStats : MonoBehaviour
     /// </summary>
     private void Awake()
     {
+        SetControls setControls = gameObject.AddComponent<SetControls>();
         inputMaster = new InputMaster();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
         if (gameManager == null)
             gameManager = FindObjectOfType<GameManager>();
         if (waveSpawner == null)
@@ -109,7 +111,6 @@ public class PlayerStats : MonoBehaviour
     /// <param name="damage">variable to be subtracted from player healht</param>
     public void TakeDamage(float damage)
     {
-        Debug.Log(timeSinceLastHit);
         // Player can not be damaged until maxTimeInvicible amount of seconds
         if (timeSinceLastHit < maxTimeInvincible) return;
 

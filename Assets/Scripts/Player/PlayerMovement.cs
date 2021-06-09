@@ -72,7 +72,9 @@ public class PlayerMovement : Movement
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        SetControls setControls = gameObject.AddComponent<SetControls>();
         inputMaster = new InputMaster();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
     }
 
     public void OnEnable()

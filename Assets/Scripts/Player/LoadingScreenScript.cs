@@ -7,6 +7,7 @@ public class LoadingScreenScript : MonoBehaviour
     // Loading Screen
     public Image loadingScreen;
     public TextMeshProUGUI loadingText;
+    public GameObject crossHair;
 
     // Player scripts
     public PlayerStats playerStats;
@@ -31,7 +32,10 @@ public class LoadingScreenScript : MonoBehaviour
         // Prevents player from opening game menu during loading screen
         // Totally unnecessary, but I like it this way
         if (loadingScreen.color.a < .5 && !playerStats.enabled)
+        {
+            crossHair.SetActive(true);
             playerStats.enabled = true;
+        }
 
         if (loadingScreen.color.a < .01f && loadingText.color.a < .01f)
             CancelInvoke("TurnOffLoadingScreen");

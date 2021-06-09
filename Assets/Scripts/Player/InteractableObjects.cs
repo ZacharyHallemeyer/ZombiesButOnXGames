@@ -292,7 +292,11 @@ public class InteractableObjects : MonoBehaviour
         playerShooting.maxGrappleTime += .25f;
         // Adjust grapple slider and start grapple recovery
         playerUI.grappleSlider.maxValue = playerShooting.maxGrappleTime;
-        StartCoroutine(playerShooting.GrappleRecovery());
+        if(!playerShooting.IsGrappleRecoveryInProgress)
+        {
+            playerShooting.IsGrappleRecoveryInProgress = true;
+            playerShooting.InvokeRepeating("GrappleRecovery", 0, .1f);
+        }
         StartCoroutine(TurnOnInteractable(currentObject));
     }
 
