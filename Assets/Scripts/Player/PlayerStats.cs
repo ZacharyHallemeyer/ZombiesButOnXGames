@@ -61,6 +61,13 @@ public class PlayerStats : MonoBehaviour
         health = maxHealth;
     }
 
+    public void RebindContols()
+    {
+        SetControls setControls = gameObject.AddComponent<SetControls>();
+        inputMaster = new InputMaster();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
+    }
+
     public void OnEnable()
     {
         inputMaster.Enable();

@@ -33,12 +33,14 @@ public class GameMenu : MainMenu
 
     public void PauseGame()
     {
+        MoveToMainMenu();
         Time.timeScale = 0;
         gameMenu.SetActive(true);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-        playerMovement.enabled = false;
-        playerShooting.enabled = false;
+        // Prevents bug where game menu has a wrong reference to these scripts
+        FindObjectOfType<PlayerMovement>().enabled = false;
+        FindObjectOfType<PlayerShooting>().enabled = false;
     }
 
     public void ResumeGame()
@@ -46,8 +48,9 @@ public class GameMenu : MainMenu
         Time.timeScale = 1;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        playerMovement.enabled = true;
-        playerShooting.enabled = true;
+        // Prevents bug where game menu has a wrong reference to these scripts
+        FindObjectOfType<PlayerMovement>().enabled = true;
+        FindObjectOfType<PlayerShooting>().enabled = true;
     }
 
     public void ExitToMainMenu()
@@ -96,6 +99,7 @@ public class GameMenu : MainMenu
             bloomLayer.enabled.value = true;
         bloomLayer.intensity.value = value;
         PlayerPrefs.SetFloat("BloomIntensity", value);
+        Debug.Log("Set new bloom is completed");
     }
 
 }

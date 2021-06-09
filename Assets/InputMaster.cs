@@ -99,14 +99,6 @@ public class @InputMaster : IInputActionCollection, IDisposable
                     ""interactions"": """"
                 },
                 {
-                    ""name"": ""StopShoot"",
-                    ""type"": ""Button"",
-                    ""id"": ""f53c03bd-423f-4ac0-b604-346b3d9aeb8f"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """"
-                },
-                {
                     ""name"": ""Grapple"",
                     ""type"": ""Value"",
                     ""id"": ""269dc11e-43ba-420e-97f7-d89539bfe0ba"",
@@ -134,6 +126,14 @@ public class @InputMaster : IInputActionCollection, IDisposable
                     ""name"": ""Escape"",
                     ""type"": ""Button"",
                     ""id"": ""f5f2c726-f8dd-4cdd-b938-d1793486edab"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""ADS"",
+                    ""type"": ""Value"",
+                    ""id"": ""dc366101-0516-4b7c-af50-23a9f61b616c"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
@@ -220,8 +220,8 @@ public class @InputMaster : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""c4ac4f5c-137c-4bdb-8dc8-3d408d4eafda"",
-                    ""path"": ""<Gamepad>/leftTrigger"",
-                    ""interactions"": ""Tap"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
+                    ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""GamePad"",
                     ""action"": ""Grenade"",
@@ -242,7 +242,7 @@ public class @InputMaster : IInputActionCollection, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""392a5aad-0701-4bf1-9610-bcc78f57d3a5"",
-                    ""path"": ""<Gamepad>/rightShoulder"",
+                    ""path"": ""<Gamepad>/leftStickPress"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""GamePad"",
@@ -549,17 +549,6 @@ public class @InputMaster : IInputActionCollection, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""6d216286-3223-4bb8-985d-e6eea8276f53"",
-                    ""path"": ""<Mouse>/leftButton"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard and Mouse"",
-                    ""action"": ""StopShoot"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""5e9865cc-9fcd-4977-80d2-73ad07c50360"",
                     ""path"": ""<Mouse>/forwardButton"",
                     ""interactions"": """",
@@ -596,7 +585,7 @@ public class @InputMaster : IInputActionCollection, IDisposable
                     ""id"": ""1a748ac1-22d6-4c0b-aac0-23392a3bf9ce"",
                     ""path"": ""<Gamepad>/rightStick"",
                     ""interactions"": """",
-                    ""processors"": ""StickDeadzone,ScaleVector2(x=40,y=20)"",
+                    ""processors"": ""StickDeadzone,ScaleVector2(x=40,y=10)"",
                     ""groups"": ""GamePad"",
                     ""action"": ""MouseLook"",
                     ""isComposite"": false,
@@ -645,6 +634,28 @@ public class @InputMaster : IInputActionCollection, IDisposable
                     ""action"": ""SwitchWeaponButton"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3a51634e-5002-4532-8594-2e67127a3f7e"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""ADS"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""80422896-444b-4d50-b6d2-c5be6db755f6"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""GamePad"",
+                    ""action"": ""ADS"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -691,11 +702,11 @@ public class @InputMaster : IInputActionCollection, IDisposable
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_Movement = m_Player.FindAction("Movement", throwIfNotFound: true);
         m_Player_Shoot = m_Player.FindAction("Shoot", throwIfNotFound: true);
-        m_Player_StopShoot = m_Player.FindAction("StopShoot", throwIfNotFound: true);
         m_Player_Grapple = m_Player.FindAction("Grapple", throwIfNotFound: true);
         m_Player_Crouch = m_Player.FindAction("Crouch", throwIfNotFound: true);
         m_Player_MouseLook = m_Player.FindAction("MouseLook", throwIfNotFound: true);
         m_Player_Escape = m_Player.FindAction("Escape", throwIfNotFound: true);
+        m_Player_ADS = m_Player.FindAction("ADS", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -755,11 +766,11 @@ public class @InputMaster : IInputActionCollection, IDisposable
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_Movement;
     private readonly InputAction m_Player_Shoot;
-    private readonly InputAction m_Player_StopShoot;
     private readonly InputAction m_Player_Grapple;
     private readonly InputAction m_Player_Crouch;
     private readonly InputAction m_Player_MouseLook;
     private readonly InputAction m_Player_Escape;
+    private readonly InputAction m_Player_ADS;
     public struct PlayerActions
     {
         private @InputMaster m_Wrapper;
@@ -774,11 +785,11 @@ public class @InputMaster : IInputActionCollection, IDisposable
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
         public InputAction @Movement => m_Wrapper.m_Player_Movement;
         public InputAction @Shoot => m_Wrapper.m_Player_Shoot;
-        public InputAction @StopShoot => m_Wrapper.m_Player_StopShoot;
         public InputAction @Grapple => m_Wrapper.m_Player_Grapple;
         public InputAction @Crouch => m_Wrapper.m_Player_Crouch;
         public InputAction @MouseLook => m_Wrapper.m_Player_MouseLook;
         public InputAction @Escape => m_Wrapper.m_Player_Escape;
+        public InputAction @ADS => m_Wrapper.m_Player_ADS;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -818,9 +829,6 @@ public class @InputMaster : IInputActionCollection, IDisposable
                 @Shoot.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShoot;
                 @Shoot.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShoot;
                 @Shoot.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnShoot;
-                @StopShoot.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnStopShoot;
-                @StopShoot.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnStopShoot;
-                @StopShoot.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnStopShoot;
                 @Grapple.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnGrapple;
                 @Grapple.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnGrapple;
                 @Grapple.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnGrapple;
@@ -833,6 +841,9 @@ public class @InputMaster : IInputActionCollection, IDisposable
                 @Escape.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnEscape;
                 @Escape.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnEscape;
                 @Escape.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnEscape;
+                @ADS.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnADS;
+                @ADS.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnADS;
+                @ADS.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnADS;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -867,9 +878,6 @@ public class @InputMaster : IInputActionCollection, IDisposable
                 @Shoot.started += instance.OnShoot;
                 @Shoot.performed += instance.OnShoot;
                 @Shoot.canceled += instance.OnShoot;
-                @StopShoot.started += instance.OnStopShoot;
-                @StopShoot.performed += instance.OnStopShoot;
-                @StopShoot.canceled += instance.OnStopShoot;
                 @Grapple.started += instance.OnGrapple;
                 @Grapple.performed += instance.OnGrapple;
                 @Grapple.canceled += instance.OnGrapple;
@@ -882,6 +890,9 @@ public class @InputMaster : IInputActionCollection, IDisposable
                 @Escape.started += instance.OnEscape;
                 @Escape.performed += instance.OnEscape;
                 @Escape.canceled += instance.OnEscape;
+                @ADS.started += instance.OnADS;
+                @ADS.performed += instance.OnADS;
+                @ADS.canceled += instance.OnADS;
             }
         }
     }
@@ -916,10 +927,10 @@ public class @InputMaster : IInputActionCollection, IDisposable
         void OnJump(InputAction.CallbackContext context);
         void OnMovement(InputAction.CallbackContext context);
         void OnShoot(InputAction.CallbackContext context);
-        void OnStopShoot(InputAction.CallbackContext context);
         void OnGrapple(InputAction.CallbackContext context);
         void OnCrouch(InputAction.CallbackContext context);
         void OnMouseLook(InputAction.CallbackContext context);
         void OnEscape(InputAction.CallbackContext context);
+        void OnADS(InputAction.CallbackContext context);
     }
 }

@@ -86,14 +86,6 @@
                     "interactions": ""
                 },
                 {
-                    "name": "StopShoot",
-                    "type": "Button",
-                    "id": "f53c03bd-423f-4ac0-b604-346b3d9aeb8f",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
-                },
-                {
                     "name": "Grapple",
                     "type": "Value",
                     "id": "269dc11e-43ba-420e-97f7-d89539bfe0ba",
@@ -121,6 +113,14 @@
                     "name": "Escape",
                     "type": "Button",
                     "id": "f5f2c726-f8dd-4cdd-b938-d1793486edab",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "ADS",
+                    "type": "Value",
+                    "id": "dc366101-0516-4b7c-af50-23a9f61b616c",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": ""
@@ -207,8 +207,8 @@
                 {
                     "name": "",
                     "id": "c4ac4f5c-137c-4bdb-8dc8-3d408d4eafda",
-                    "path": "<Gamepad>/leftTrigger",
-                    "interactions": "Tap",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
                     "processors": "",
                     "groups": "GamePad",
                     "action": "Grenade",
@@ -229,7 +229,7 @@
                 {
                     "name": "",
                     "id": "392a5aad-0701-4bf1-9610-bcc78f57d3a5",
-                    "path": "<Gamepad>/rightShoulder",
+                    "path": "<Gamepad>/leftStickPress",
                     "interactions": "",
                     "processors": "",
                     "groups": "GamePad",
@@ -536,17 +536,6 @@
                 },
                 {
                     "name": "",
-                    "id": "6d216286-3223-4bb8-985d-e6eea8276f53",
-                    "path": "<Mouse>/leftButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard and Mouse",
-                    "action": "StopShoot",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "5e9865cc-9fcd-4977-80d2-73ad07c50360",
                     "path": "<Mouse>/forwardButton",
                     "interactions": "",
@@ -583,7 +572,7 @@
                     "id": "1a748ac1-22d6-4c0b-aac0-23392a3bf9ce",
                     "path": "<Gamepad>/rightStick",
                     "interactions": "",
-                    "processors": "StickDeadzone,ScaleVector2(x=40,y=20)",
+                    "processors": "StickDeadzone,ScaleVector2(x=40,y=10)",
                     "groups": "GamePad",
                     "action": "MouseLook",
                     "isComposite": false,
@@ -630,6 +619,28 @@
                     "processors": "",
                     "groups": "GamePad",
                     "action": "SwitchWeaponButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3a51634e-5002-4532-8594-2e67127a3f7e",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard and Mouse",
+                    "action": "ADS",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "80422896-444b-4d50-b6d2-c5be6db755f6",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "GamePad",
+                    "action": "ADS",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

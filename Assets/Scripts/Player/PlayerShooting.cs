@@ -124,6 +124,13 @@ public class PlayerShooting : MonoBehaviour
         inputMaster = setControls.SetPlayerControls(inputMaster);
     }
 
+    public void RebindContols()
+    {
+        SetControls setControls = gameObject.AddComponent<SetControls>();
+        inputMaster = new InputMaster();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
+    }
+
     private void Start()
     {
         // Set up items and grenades 
@@ -302,7 +309,6 @@ public class PlayerShooting : MonoBehaviour
                 ChangeCurrentWeapon();
             }
             
-
 
             // Shoot
             if(!isShooting)

@@ -170,7 +170,46 @@ public class MainMenu : MonoBehaviour
 
     public void SetPlayerPrefControls()
     {
-        Debug.Log("Set player prefs is run");
+        InputMaster inputMaster = new InputMaster();
+
+        Debug.Log(inputMaster.Player.Reload.bindings[0].ToString());
+
+        PlayerPrefs.SetString("CrouchKeyboard", GetInputString(inputMaster.Player.Crouch.bindings[0].ToString()));
+        PlayerPrefs.SetString("ShootKeyboard", GetInputString(inputMaster.Player.Shoot.bindings[0].ToString()));
+        PlayerPrefs.SetString("GrappleKeyboard", GetInputString(inputMaster.Player.Grapple.bindings[0].ToString()));
+        PlayerPrefs.SetString("SwitchWeaponKeyboard", GetInputString(inputMaster.Player.SwitchWeaponButton.bindings[0].ToString()));
+        PlayerPrefs.SetString("ReloadKeyboard", GetInputString(inputMaster.Player.Reload.bindings[0].ToString()));
+        PlayerPrefs.SetString("InteractKeyboard", GetInputString(inputMaster.Player.Interact.bindings[0].ToString()));
+        PlayerPrefs.SetString("GrenadeKeyboard", GetInputString(inputMaster.Player.Grenade.bindings[0].ToString()));
+        PlayerPrefs.SetString("SpecialKeyboard", GetInputString(inputMaster.Player.Special.bindings[0].ToString()));
+        PlayerPrefs.SetString("EscapeKeyboard", GetInputString(inputMaster.Player.Escape.bindings[0].ToString()));
+        PlayerPrefs.SetString("ADSKeyboard", GetInputString(inputMaster.Player.ADS.bindings[0].ToString()));
+
+        PlayerPrefs.SetString("CrouchGamepad", GetInputString(inputMaster.Player.Crouch.bindings[1].ToString()));
+        PlayerPrefs.SetString("ShootGamepad", GetInputString(inputMaster.Player.Shoot.bindings[1].ToString()));
+        PlayerPrefs.SetString("GrappleGamepad", GetInputString(inputMaster.Player.Grapple.bindings[1].ToString()));
+        PlayerPrefs.SetString("SwitchWeaponGamepad", GetInputString(inputMaster.Player.SwitchWeaponButton.bindings[1].ToString()));
+        PlayerPrefs.SetString("ReloadGamepad", GetInputString(inputMaster.Player.Reload.bindings[1].ToString()));
+        PlayerPrefs.SetString("InteractGamepad", GetInputString(inputMaster.Player.Interact.bindings[1].ToString()));
+        PlayerPrefs.SetString("GrenadeGamepad", GetInputString(inputMaster.Player.Grenade.bindings[1].ToString()));
+        PlayerPrefs.SetString("SpecialGamepad", GetInputString(inputMaster.Player.Special.bindings[1].ToString()));
+        PlayerPrefs.SetString("EscapeGamepad", GetInputString(inputMaster.Player.Escape.bindings[1].ToString()));
+        PlayerPrefs.SetString("ADSGamepad", GetInputString(inputMaster.Player.ADS.bindings[1].ToString()));
+        
+        PlayerPrefs.SetFloat("Sens", 1f);
+        PlayerPrefs.SetFloat("ADSSens", 1f);
+
+        if(FindObjectOfType<PlayerShooting>() != null)
+            FindObjectOfType<PlayerShooting>().RebindContols();
+        if(FindObjectOfType<PlayerMovement>() != null)
+        FindObjectOfType<PlayerMovement>().RebindContols();
+    }
+
+    /// <summary>
+    /// Reset functions do the same thing as SetPlayerPrefControls but are seperated between keyboard and gamepad
+    /// </summary>
+    public void ResetPlayerControlsKeyboard()
+    {
         InputMaster inputMaster = new InputMaster();
 
         PlayerPrefs.SetString("CrouchKeyboard", GetInputString(inputMaster.Player.Crouch.bindings[0].ToString()));
@@ -182,6 +221,15 @@ public class MainMenu : MonoBehaviour
         PlayerPrefs.SetString("GrenadeKeyboard", GetInputString(inputMaster.Player.Grenade.bindings[0].ToString()));
         PlayerPrefs.SetString("SpecialKeyboard", GetInputString(inputMaster.Player.Special.bindings[0].ToString()));
         PlayerPrefs.SetString("EscapeKeyboard", GetInputString(inputMaster.Player.Escape.bindings[0].ToString()));
+        PlayerPrefs.SetString("ADSKeyboard", GetInputString(inputMaster.Player.ADS.bindings[0].ToString()));
+    }
+
+    /// <summary>
+    /// Reset functions do the same thing as SetPlayerPrefControls but are seperated between keyboard and gamepad
+    /// </summary>
+    public void ResetPlayerControlsGamepad()
+    {
+        InputMaster inputMaster = new InputMaster();
 
         PlayerPrefs.SetString("CrouchGamepad", GetInputString(inputMaster.Player.Crouch.bindings[1].ToString()));
         PlayerPrefs.SetString("ShootGamepad", GetInputString(inputMaster.Player.Shoot.bindings[1].ToString()));
@@ -192,6 +240,7 @@ public class MainMenu : MonoBehaviour
         PlayerPrefs.SetString("GrenadeGamepad", GetInputString(inputMaster.Player.Grenade.bindings[1].ToString()));
         PlayerPrefs.SetString("SpecialGamepad", GetInputString(inputMaster.Player.Special.bindings[1].ToString()));
         PlayerPrefs.SetString("EscapeGamepad", GetInputString(inputMaster.Player.Escape.bindings[1].ToString()));
+        PlayerPrefs.SetString("ADSGamepad", GetInputString(inputMaster.Player.ADS.bindings[1].ToString()));
     }
 
     private string GetInputString(string str)

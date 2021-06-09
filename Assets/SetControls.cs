@@ -35,6 +35,9 @@ public class SetControls : MonoBehaviour
         inputMaster.Player.Escape.ChangeBindingWithPath(
                            GetInputString(inputMaster.Player.Escape.bindings[0].ToString())).
                            WithPath(PlayerPrefs.GetString("EscapeKeyboard"));
+        inputMaster.Player.ADS.ChangeBindingWithPath(
+                            GetInputString(inputMaster.Player.ADS.bindings[0].ToString())).
+                            WithPath(PlayerPrefs.GetString("ADSKeyboard"));
 
         // Set gamepad controls
         inputMaster.Player.Crouch.ChangeBindingWithPath(
@@ -64,7 +67,9 @@ public class SetControls : MonoBehaviour
         inputMaster.Player.Escape.ChangeBindingWithPath(
                            GetInputString(inputMaster.Player.Escape.bindings[1].ToString())).
                            WithPath(PlayerPrefs.GetString("EscapeGamepad"));
-
+        inputMaster.Player.ADS.ChangeBindingWithPath(
+                           GetInputString(inputMaster.Player.ADS.bindings[1].ToString())).
+                           WithPath(PlayerPrefs.GetString("ADSGamepad"));
 
         return inputMaster;
     }

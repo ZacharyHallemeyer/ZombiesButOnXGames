@@ -7,13 +7,20 @@ using TMPro;
 
 public class ControlsMenu : MonoBehaviour
 {
+    /// ============================================================================= ///
+    /// Keyboard index: 0
+    /// Gamepad index: 1
+    /// ============================================================================= ///
+
     private InputMaster inputMaster;
     public TextMeshProUGUI crouchKeyboardText, grappleKeyboardText, switchKeyboardText, reloadKeyboardText, 
                            shootKeyboardText, interactKeyboardText, moveKeyboardText, grenadeKeyboardText, 
-                           specialKeyboardText;
+                           specialKeyboardText, adsKeyboardText;
 
     public TextMeshProUGUI crouchGamepadText, grappleGamepadText, switchGamepadText, reloadGamepadText, shootGamepadText,
-                       interactGamepadText, moveGamepadText, grenadeGamepadText, specialGamepadText;
+                       interactGamepadText, moveGamepadText, grenadeGamepadText, specialGamepadText, adsGamepadText;
+
+    public Slider keyboardSens, keyboardADSSens, gamepadSens, gamepadADSSens;
 
     private InputActionRebindingExtensions.RebindingOperation rebindingOperation;
     private bool rebindInPogress = false;
@@ -21,22 +28,21 @@ public class ControlsMenu : MonoBehaviour
 
     private void Awake()
     {
-        SetControls setControls = gameObject.AddComponent<SetControls>();
-        inputMaster = new InputMaster();
-        inputMaster = setControls.SetPlayerControls(inputMaster);
-        SetControlMenuKeyboard();
     }
 
     public void SetControlMenuKeyboard()
     {
-        //Shoot:<Gamepad>/rightTrigger[GamePad]
+        SetControls setControls = gameObject.AddComponent<SetControls>();
+        inputMaster = new InputMaster();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
+
         shootKeyboardText.text = "SHOOT: " + 
                             inputMaster.Player.Shoot.bindings[0].ToDisplayString();
-        crouchKeyboardText.text = "CROUCH/SLIDE: " + 
+        crouchKeyboardText.text = "CROUCH: " + 
                             inputMaster.Player.Crouch.bindings[0].ToDisplayString();
         grappleKeyboardText.text = "GRAPPLE: " +
                             inputMaster.Player.Grapple.bindings[0].ToDisplayString();
-        switchKeyboardText.text = "SWITCH WEAPON: " +
+        switchKeyboardText.text = "SWITCH: " +
                             inputMaster.Player.SwitchWeaponButton.bindings[0].ToDisplayString()
                             + " OR " +
                             inputMaster.Player.SwitchWeaponMouseWheel.bindings[0].ToDisplayString();
@@ -53,12 +59,18 @@ public class ControlsMenu : MonoBehaviour
                             inputMaster.Player.Grenade.bindings[0].ToDisplayString();
         specialKeyboardText.text = "SPECIAL: " +
                             inputMaster.Player.Special.bindings[0].ToDisplayString();
+        adsKeyboardText.text = "ADS: " +
+                            inputMaster.Player.ADS.bindings[0].ToDisplayString();
     }
 
     public void SetControlMenuGamepad()
     {
+        SetControls setControls = gameObject.AddComponent<SetControls>();
+        inputMaster = new InputMaster();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
+
         shootGamepadText.text = "SHOOT: " + inputMaster.Player.Shoot.bindings[1].ToDisplayString();
-        crouchGamepadText.text = "CROUCH/SLIDE: " +
+        crouchGamepadText.text = "CROUCH: " +
                             inputMaster.Player.Crouch.bindings[1].ToDisplayString();
         grappleGamepadText.text = "GRAPPLE: " +
                             inputMaster.Player.Grapple.bindings[1].ToDisplayString();
@@ -73,8 +85,9 @@ public class ControlsMenu : MonoBehaviour
                             inputMaster.Player.Grenade.bindings[1].ToDisplayString();
         specialGamepadText.text = "SPECIAL: " +
                             inputMaster.Player.Special.bindings[1].ToDisplayString();
+        adsGamepadText.text = "ADS: " +
+                    inputMaster.Player.ADS.bindings[1].ToDisplayString();
     }
-
 
     // KEYBOARD AND MOUSE ======================================================================
     public void SetNewShootKeyboard()
@@ -90,7 +103,7 @@ public class ControlsMenu : MonoBehaviour
     public void OnRebindShootKeyboard()
     {
         shootKeyboardText.text = "SHOOT: " + inputMaster.Player.Shoot.bindings[0].ToDisplayString();
-        PlayerPrefs.SetString("Keyboard", GetInputString(inputMaster.Player.Shoot.bindings[0].ToString()));
+        PlayerPrefs.SetString("ShootKeyboard", GetInputString(inputMaster.Player.Shoot.bindings[0].ToString()));
         OnRebindComplete();
     }
 
@@ -106,7 +119,7 @@ public class ControlsMenu : MonoBehaviour
 
     public void OnRebindCrouchKeyboard()
     {
-        crouchKeyboardText.text = "CROUCH/SLIDE: " +
+        crouchKeyboardText.text = "CROUCH: " +
             inputMaster.Player.Crouch.bindings[0].ToDisplayString();
         PlayerPrefs.SetString("CrouchKeyboard", GetInputString(inputMaster.Player.Crouch.bindings[0].ToString()));
         OnRebindComplete();
@@ -142,8 +155,10 @@ public class ControlsMenu : MonoBehaviour
 
     public void OnRebindWeaponKeyboard()
     {
-        switchKeyboardText.text = "SWITCH WEAPON: " +
-               inputMaster.Player.SwitchWeaponButton.bindings[0].ToDisplayString();
+        switchKeyboardText.text = "SWITCH: " +
+                inputMaster.Player.SwitchWeaponButton.bindings[0].ToDisplayString()
+                + " OR " +
+                inputMaster.Player.SwitchWeaponMouseWheel.bindings[0].ToDisplayString();
         PlayerPrefs.SetString("SwitchWeaponKeyboard", GetInputString(inputMaster.Player.SwitchWeaponButton.bindings[0].ToString()));
         OnRebindComplete();
     }
@@ -163,7 +178,6 @@ public class ControlsMenu : MonoBehaviour
         reloadKeyboardText.text = "RELOAD: " +
                inputMaster.Player.Reload.bindings[0].ToDisplayString();
         PlayerPrefs.SetString("ReloadKeyboard", GetInputString(inputMaster.Player.Reload.bindings[0].ToString()));
-
         OnRebindComplete();
     }
 
@@ -190,7 +204,6 @@ public class ControlsMenu : MonoBehaviour
         if (rebindInPogress) return;
         rebindInPogress = true;
         rebindingOperation =inputMaster.Player.Grenade.PerformInteractiveRebinding()
-                            .WithControlsExcluding("Mouse")
                             .OnMatchWaitForAnother(.1f)
                             .OnComplete(operation => OnRebindGrappleKeyboard())
                             .Start();
@@ -209,7 +222,6 @@ public class ControlsMenu : MonoBehaviour
         if (rebindInPogress) return;
         rebindInPogress = true;
         rebindingOperation = inputMaster.Player.Special.PerformInteractiveRebinding()
-                            .WithControlsExcluding("Mouse")
                             .OnMatchWaitForAnother(.1f)
                             .OnComplete(operation => OnRebindSpecialKeyboard())
                             .Start();
@@ -220,6 +232,24 @@ public class ControlsMenu : MonoBehaviour
         specialKeyboardText.text = "SPECIAL: " +
                inputMaster.Player.Special.bindings[0].ToDisplayString();
         PlayerPrefs.SetString("SpecialKeyboard", GetInputString(inputMaster.Player.Special.bindings[0].ToString()));
+        OnRebindComplete();
+    }
+
+    public void SetNewADSKeyboard()
+    {
+        if (rebindInPogress) return;
+        rebindInPogress = true;
+        rebindingOperation = inputMaster.Player.Special.PerformInteractiveRebinding()
+                            .OnMatchWaitForAnother(.1f)
+                            .OnComplete(operation => OnRebindADSKeyboard())
+                            .Start();
+    }
+
+    public void OnRebindADSKeyboard()
+    {
+        adsKeyboardText.text = "ADS: " +
+               inputMaster.Player.ADS.bindings[0].ToDisplayString();
+        PlayerPrefs.SetString("ADSKeyboard", GetInputString(inputMaster.Player.ADS.bindings[0].ToString()));
         OnRebindComplete();
     }
 
@@ -256,7 +286,7 @@ public class ControlsMenu : MonoBehaviour
 
     public void OnRebindCrouchGamepad()
     {
-        crouchGamepadText.text = "CROUCH/SLIDE: " +
+        crouchGamepadText.text = "CROUCH: " +
             inputMaster.Player.Crouch.bindings[1].ToDisplayString();
         PlayerPrefs.SetString("CrouchGamepad", GetInputString(inputMaster.Player.Crouch.bindings[1].ToString()));
         OnRebindComplete();
@@ -292,7 +322,7 @@ public class ControlsMenu : MonoBehaviour
 
     public void OnRebindWeaponGamepad()
     {
-        switchGamepadText.text = "SWITCH WEAPON: " +
+        switchGamepadText.text = "SWITCH: " +
                inputMaster.Player.SwitchWeaponButton.bindings[1].ToDisplayString();
         PlayerPrefs.SetString("SwitchWeaponGamepad", GetInputString(inputMaster.Player.SwitchWeaponButton.bindings[1].ToString()));
         OnRebindComplete();
@@ -367,9 +397,26 @@ public class ControlsMenu : MonoBehaviour
     public void OnRebindSpecialGamepad()
     {
         specialGamepadText.text = "SPECIAL: " +
-               inputMaster.Player.Special.bindings[0].ToDisplayString();
-
+               inputMaster.Player.Special.bindings[1].ToDisplayString();
         PlayerPrefs.SetString("SpecialGamepad", GetInputString(inputMaster.Player.Special.bindings[1].ToString()));
+        OnRebindComplete();
+    }
+
+    public void SetNewADSGamepad()
+    {
+        if (rebindInPogress) return;
+        rebindInPogress = true;
+        rebindingOperation = inputMaster.Player.Special.PerformInteractiveRebinding()
+                            .OnMatchWaitForAnother(.1f)
+                            .OnComplete(operation => OnRebindADSGamepad())
+                            .Start();
+    }
+
+    public void OnRebindADSGamepad()
+    {
+        adsGamepadText.text = "ADS: " +
+               inputMaster.Player.ADS.bindings[1].ToDisplayString();
+        PlayerPrefs.SetString("ADSGamepad", GetInputString(inputMaster.Player.ADS.bindings[1].ToString()));
         OnRebindComplete();
     }
 
@@ -383,6 +430,41 @@ public class ControlsMenu : MonoBehaviour
     public void OnRebindComplete()
     {
         rebindingOperation.Dispose();
+        //FindObjectOfType<PlayerStats>().RebindContols();
+        FindObjectOfType<PlayerShooting>().RebindContols();
+        FindObjectOfType<PlayerMovement>().RebindContols();
         rebindInPogress = false;
     }
+
+    // SLIDERS ====================================================================================
+
+    public void SetNewADSSens(float value)
+    {
+        keyboardADSSens.value = value;
+        gamepadADSSens.value = value;
+        PlayerPrefs.SetFloat("ADSSens", value);
+        PlayerMovement playerMovement = FindObjectOfType<PlayerMovement>();
+        if (playerMovement != null)
+            playerMovement.adsSensMultiplier = value;
+    }
+
+    public void SetNewSens(float value)
+    {
+        keyboardSens.value = value;
+        gamepadSens.value = value;
+        PlayerPrefs.SetFloat("Sens", value);
+        PlayerMovement playerMovement = FindObjectOfType<PlayerMovement>();
+        if (playerMovement != null)
+            playerMovement.sensMultiplier = value;
+    }
+
+    public void SetControlSliders()
+    {
+        keyboardADSSens.value = PlayerPrefs.GetFloat("ADSSens", 1f);
+        gamepadADSSens.value = PlayerPrefs.GetFloat("ADSSens", 1f);
+        keyboardSens.value = PlayerPrefs.GetFloat("Sens", 1f);
+        gamepadSens.value = PlayerPrefs.GetFloat("Sens", 1f);
+    }
+
+    // END OF SLIDERS =============================================================================
 }

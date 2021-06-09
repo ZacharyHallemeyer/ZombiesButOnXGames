@@ -11,9 +11,7 @@ public class PlayerMovement : Movement
     public PlayerShooting playerShooting;
     public PlayerUIScript playerUIScript;
     private InputMaster inputMaster;
-
-    //Other
-    private Rigidbody rb;
+    public Rigidbody rb;
 
     // Ground Check
     public Transform groundCheck;
@@ -23,7 +21,11 @@ public class PlayerMovement : Movement
     private float xRotation;
     private float desiredX;
     private float sensitivity = 2000f;
-    private float sensMultiplier = 1f;
+    private float normalSensitivity = 2000f;
+    private float adsSensitivity = 500f;
+    // Default value for sens multipliers are 1 
+    public float sensMultiplier { get; set; } = 1f;
+    public float adsSensMultiplier { get; set; } = 1f;
 
     //Movement
     private readonly int moveSpeed = 4500;
@@ -71,7 +73,15 @@ public class PlayerMovement : Movement
 
     void Awake()
     {
-        rb = GetComponent<Rigidbody>();
+        SetControls setControls = gameObject.AddComponent<SetControls>();
+        inputMaster = new InputMaster();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
+        sensMultiplier = PlayerPrefs.GetFloat("Sens", 1f);
+        adsSensMultiplier = PlayerPrefs.GetFloat("ADSSens", 1f);
+    }
+
+    public void RebindContols()
+    {
         SetControls setControls = gameObject.AddComponent<SetControls>();
         inputMaster = new InputMaster();
         inputMaster = setControls.SetPlayerControls(inputMaster);
@@ -139,6 +149,18 @@ public class PlayerMovement : Movement
         if (crouching)
             if (inputMaster.Player.Crouch.ReadValue<float>() == 0 && !IsOnWall && !playerShooting.IsGrappling)
                 StopCrouch();
+
+        // AIM DOWN SIGHTS
+        if (inputMaster.Player.ADS.ReadValue<float>() != 0)
+        {
+            if (playerShooting.IsGrappling)
+                sensitivity = normalSensitivity;
+            else if (sensitivity != adsSensitivity)
+                sensitivity = adsSensitivity;
+        }
+        else if (sensitivity != normalSensitivity)
+            sensitivity = normalSensitivity;
+
     }
 
     /// <summary>
