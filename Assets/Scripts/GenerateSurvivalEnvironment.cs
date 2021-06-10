@@ -50,6 +50,9 @@ public class GenerateSurvivalEnvironment : MonoBehaviour
         SpawnSuns();
     }
 
+    /// <summary>
+    /// Spawn box according to the dimensions given from public variables
+    /// </summary>
     private void SpawnContainer()
     {
         // Spawn ground
@@ -88,6 +91,9 @@ public class GenerateSurvivalEnvironment : MonoBehaviour
         roof.transform.parent = environmentContainer.transform;
     }
 
+    /// <summary>
+    /// Sets up and starts a coroutine for spawning buildings
+    /// </summary>
     private void SpawnBuildings()
     {
         xOffset = Random.Range(perlinOffsetMin, perlinOffsetMax);
@@ -96,6 +102,12 @@ public class GenerateSurvivalEnvironment : MonoBehaviour
         StartCoroutine(SpawnBuilding(0));
     }
 
+    /// <summary>
+    /// Spawn a building according to the dimensions given from public variables.
+    /// Recursivly calls itself until it has spawned a set amount of buildings (set in SpawnBuildings)
+    /// </summary>
+    /// <param name="counter"></param>
+    /// <returns></returns>
     private IEnumerator SpawnBuilding(int counter)
     {
         int errorCatchCounter;
@@ -111,12 +123,15 @@ public class GenerateSurvivalEnvironment : MonoBehaviour
         errorCatchCounter = 0;
         do
         {
+            // Stop if while loop has gone for more than 1000 iterations in which case break out of recursive coroutine 
+            // because there is likely no more room for buildings
             errorCatchCounter++;
             if (errorCatchCounter > 1000)
             {
                 buildingCount = counter;
                 yield break;
             }
+            // Find size and coords
             xSize = Random.Range(buildingMinX, buildingMaxX);
             zSize = Random.Range(buildingMinZ, buildingMaxZ);
             xCoord = Random.Range(startOfGroundX, endOfGroundX);
@@ -125,20 +140,28 @@ public class GenerateSurvivalEnvironment : MonoBehaviour
             ySize = GeneratePerlinNoise(xCoord, zCoord) * buildingMaxY;
             yCoord = ySize / 2 + .7f;
             buildingCenter = new Vector3(xCoord, yCoord, zCoord);
+        // Check if building is going to morph into another buidling
         } while (CheckIfBuilding(buildingCenter, new Vector3(spaceBetweenBuildingsMultiplier * xSize, yCoord, spaceBetweenBuildingsMultiplier * zSize)));
 
         currentBuilding = Instantiate(buildingPrefab, buildingCenter, Quaternion.Euler(0, 0, 0));
         currentBuilding.transform.localScale = new Vector3(xSize, ySize, zSize);
+        // Parent object to container
         currentBuilding.transform.parent = environmentContainer.transform;
 
         StartCoroutine(SpawnBuilding(counter + 1));
     }
 
+    /// <summary>
+    /// Returns true if there is a collider in the dimensions/coords given
+    /// </summary>
     private bool CheckIfBuilding(Vector3 center, Vector3 size)
     {
         return Physics.CheckBox(center, size / 2, Quaternion.Euler(0, 0, 0));
     }
 
+    /// <summary>
+    /// Returns a the perlin noise value for the cooresponding x and y values
+    /// </summary>
     private float GeneratePerlinNoise(float x, float y)
     {
         float xCoord = (float)x / groundXSize * scale + xOffset;
@@ -147,6 +170,9 @@ public class GenerateSurvivalEnvironment : MonoBehaviour
         return Mathf.Clamp(Mathf.PerlinNoise(xCoord, yCoord), 0, 1);
     }
 
+    /// <summary>
+    /// Spawns ground and wall lights based on the public variables
+    /// </summary>
     private void SpawnLights()
     {
         GameObject light;
@@ -207,7 +233,9 @@ public class GenerateSurvivalEnvironment : MonoBehaviour
         }
     }
 
-
+    /// <summary>
+    /// Spawns 'suns' based on the given public variables
+    /// </summary>
     private void SpawnSuns()
     {
         GameObject currentSun;
@@ -231,11 +259,17 @@ public class GenerateSurvivalEnvironment : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Returns true if there is a collider in the dimensions/coords given
+    /// </summary>
     private bool CheckIfSun(Vector3 center, float radius)
     {
         return Physics.CheckSphere(center, radius * 5);
     }
 
+    /// <summary>
+    /// Returns a Random Color in the value type Color
+    /// </summary>
     private Color RandomColor()
     {
         return new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));

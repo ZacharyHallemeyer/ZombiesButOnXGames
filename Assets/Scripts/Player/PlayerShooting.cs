@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Handles player shooting and grappling
+/// </summary>
 public class PlayerShooting : MonoBehaviour
 {
     // General Variables

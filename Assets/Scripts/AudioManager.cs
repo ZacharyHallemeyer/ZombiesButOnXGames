@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
+/// <summary>
+/// Handles audio
+/// </summary>
 public class AudioManager : MonoBehaviour
 {
     [System.Serializable]
@@ -39,11 +42,13 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
+        // Set volumes pref if there is none
         if (PlayerPrefs.GetFloat("SoundEffectsVolume", 100) == 100)
             PlayerPrefs.SetFloat("SoundEffectsVolume", .75f);
         if (PlayerPrefs.GetFloat("MusicVolume", 100) == 100)
             PlayerPrefs.SetFloat("MusicVolume", .75f);
 
+        // Set each source
         foreach (Sound s in sounds)
         {
             s.source = gameObject.AddComponent<AudioSource>();
@@ -67,6 +72,9 @@ public class AudioManager : MonoBehaviour
         Play("MusicBackground");
     }
 
+    /// <summary>
+    /// Play audio clip with cooresponding name
+    /// </summary>
     public void Play(string name)
     {
         Sound s = Array.Find(sounds, sound => sound.name == name);
@@ -75,6 +83,9 @@ public class AudioManager : MonoBehaviour
         s.source.Play();
     }
 
+    /// <summary>
+    /// Stop audio clip with cooresponding name
+    /// </summary>
     public void Stop(string name)
     {
         Sound s = Array.Find(sounds, sound => sound.name == name);
@@ -83,6 +94,9 @@ public class AudioManager : MonoBehaviour
         s.source.Stop();
     }
 
+    /// <summary>
+    /// Decreases volume of audio clip with cooresponding name. Returns true if volume is less than .01f (info used in player shooting script)
+    /// </summary>
     public bool FadeOut(string name)
     {
         Sound s = Array.Find(sounds, sound => sound.name == name);
@@ -92,6 +106,10 @@ public class AudioManager : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// Resets volume of audio clip with cooresponding name to player prefered volume
+    /// </summary>
+    /// <param name="name"></param>
     public void ResetSound(string name)
     {
         Sound s = Array.Find(sounds, sound => sound.name == name);
@@ -111,6 +129,9 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Set music audio clip's volume to player preference
+    /// </summary>
     public void SetMusicVolume()
     {
         foreach (Sound s in sounds)
@@ -121,6 +142,9 @@ public class AudioManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Set sounds (other than music) audio clip's volume to player preference
+    /// </summary>
     public void SetSoundEffectVolume()
     {
         foreach (Sound s in sounds)

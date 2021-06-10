@@ -37,8 +37,12 @@ public class WaveSpawner : MonoBehaviour
         if (playerUI == null)
             playerUI = FindObjectOfType<PlayerUIScript>();
         InvokeRepeating("LifeCycle", 2f, 1f);
-    }   
+    }
 
+    /// <summary>
+    /// Fills spawn points
+    /// Dependencies: GenerateWaveEnvironment instance
+    /// </summary>
     private void FillSpawnPoints()
     {
         int xCoord, yCoord, zCoord;
@@ -53,6 +57,9 @@ public class WaveSpawner : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Called with invoke repeating and should be repeated every second
+    /// </summary>
     private void LifeCycle()
     {
         if (!IsEnemyAlive() && !spawningWave)
@@ -85,17 +92,15 @@ public class WaveSpawner : MonoBehaviour
     /// </summary>
     private IEnumerator StartWave()
     {
-        //Debug.Log("Start wave is called");
         StartCoroutine(playerUI.NewWaveUI(waveNumber));
         yield return new WaitForSeconds(timeBetweenWaves);
         StartCoroutine(SpawnWave());
     }
 
     /// <summary>
-    /// Spawn every enemy in current wave
+    /// Spawn every enemy in current wave with corresponding wave values
     /// Dependencies: CreateWave()
     /// </summary>
-    /// <returns></returns>
     private IEnumerator SpawnWave()
     {
         //Debug.Log("Spawn Wave is called");

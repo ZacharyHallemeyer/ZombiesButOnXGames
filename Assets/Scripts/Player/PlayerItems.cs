@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Stores info and functions for player items
+/// </summary>
 public class PlayerItems : MonoBehaviour
 {
     public CapsuleCollider playerCollider;

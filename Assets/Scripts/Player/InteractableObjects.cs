@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
+/// <summary>
+/// Stores info for each type of interactable object and cooresponding functions
+/// </summary>
 public class InteractableObjects : MonoBehaviour
 {
     public class InteractableObject
@@ -198,7 +201,6 @@ public class InteractableObjects : MonoBehaviour
     /// Destroys spawned gun after 10 second
     /// Dependencies: DestroyGun
     /// </summary>
-    /// <returns></returns>
     private IEnumerator SelfDestructGun()
     {
         yield return new WaitForSeconds(10f);

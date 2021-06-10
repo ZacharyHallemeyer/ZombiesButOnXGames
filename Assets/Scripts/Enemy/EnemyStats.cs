@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Handles enemy stats and enemy death
+/// </summary>
 public class EnemyStats : MonoBehaviour
 {
     public int BaseDamage { private set; get; } = 10;
@@ -45,9 +48,11 @@ public class EnemyStats : MonoBehaviour
         meshRenderer.material.color = baseColor;
     }
 
+    /// <summary>
     /// subtracts damage from health and destorys enemy object if enemy
     /// health is less than or equal to 0
     /// Dependencies: ShowDamage, Death
+    /// </summary>
     public virtual void TakeDamage(float damage)
     {
         playerStats.CurrentPoints += (int) damage * playerStats.PointMultiplier;
@@ -74,6 +79,9 @@ public class EnemyStats : MonoBehaviour
         showDamageActive = false;
     }
 
+    /// <summary>
+    /// calls DeathAnimation and increases player stats and disables box collider and movement script
+    /// </summary>
     public void Death()
     {
         playerStats.TotalEnemiesKilled++;
@@ -82,6 +90,9 @@ public class EnemyStats : MonoBehaviour
         InvokeRepeating("DeathAnimation", 0f, .01f);
     }
 
+    /// <summary>
+    /// Rotates gameobject fro 350 degrees then destroys game object
+    /// </summary>
     private void DeathAnimation()
     {
         transform.localRotation *= Quaternion.Euler(0f, 0f, 1.5f);

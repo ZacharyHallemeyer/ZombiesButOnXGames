@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+/// <summary>
+/// Handles player loading screen
+/// </summary>
 public class LoadingScreenScript : MonoBehaviour
 {
     // Loading Screen

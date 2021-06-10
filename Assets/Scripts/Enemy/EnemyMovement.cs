@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Handles enemy movement
+/// </summary>
 public class EnemyMovement : MonoBehaviour
 {
     // Components
@@ -18,21 +21,21 @@ public class EnemyMovement : MonoBehaviour
     
     public float MoveSpeed { get; set; } = 2000;
 
-    private float groundedDistance = 2f;
+    private readonly float groundedDistance = 2f;
+    private readonly float maxTimeMotionless = .5f;
+    private readonly float range = 25f;
+    private readonly float threshold = .75f;
+    private readonly float jumpMultiplier = 1.5f;
+    private readonly float minJumpVelocity = 7f;
     private float timeMotionless = 0f;
-    private float maxTimeMotionless = .5f;
-    private float range = 25f;
-    private float threshold = .75f;
-    private float jumpMultiplier = 1.5f;
-    private float minJumpVelocity = 7f;
     public bool grounded, jumpActive;
     public LayerMask whatIsGround;
     public LayerMask whatIsObstacle;
     public RaycastHit hit;
 
     // Knockback variables
-    private int knockbackForce = 1500;
-    private float shockWaveForce = 5000;
+    private readonly int knockbackForce = 1500;
+    private readonly float shockWaveForce = 5000;
 
 
     private void Awake()
@@ -99,7 +102,9 @@ public class EnemyMovement : MonoBehaviour
         transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0f, desiredRotation.eulerAngles.y, 0f ), Time.deltaTime * 10f);
     }
     
-
+    /// <summary>
+    /// Moves towards player and decides if enemy should jump 
+    /// </summary>
     private void Movement()
     {
         Vector3 direction;
@@ -127,7 +132,10 @@ public class EnemyMovement : MonoBehaviour
         rb.AddForce(direction.normalized * MoveSpeed * Time.deltaTime);
     }
 
-    
+    /// <summary>
+    /// Jump randomly if within range 
+    /// This funciton should be called with invoke repeating every 2.5 seconds
+    /// </summary>
     private void RandomMovement()
     {
         if (!InRange())
@@ -143,7 +151,8 @@ public class EnemyMovement : MonoBehaviour
     /// <summary>
     /// Returns true is this gameobject is traveling toward player
     /// </summary>
-    /// <param name="threshold">the closer to 1 threshold becomes the more accurate the function becomes</param>
+    /// <param name="threshold">the closer to 1 threshold becomes the more accurate the function becomes 
+    /// (-1: opposite path of player 0: somewhat path to player 1: exact path to player)</param>
     private bool IsPlayerInCurrentDirection(float threshold)
     {
         if (rb.velocity.magnitude < .1)
@@ -169,7 +178,8 @@ public class EnemyMovement : MonoBehaviour
     /// <summary>
     /// Returns true if there is a obstacle between enemy and player
     /// Unless the enemy is above the player in which case function will 
-    /// return false
+    /// return false as long as the obstacle in the path to player has a
+    /// lower height that enemy
     /// </summary>
     private bool IsObstacle()
     {
@@ -188,7 +198,7 @@ public class EnemyMovement : MonoBehaviour
     }
 
     /// <summary>
-    /// Applies force backwards
+    /// Applies force opposite in regard to the collider hit
     /// </summary>
     /// <param name="knockbackForce"></param>
     private void Knockback(float knockbackForce, Transform collider)
@@ -228,19 +238,20 @@ public class EnemyMovement : MonoBehaviour
     }
 
     /// <summary>
-    /// Returns the jump velocity required to jump to a certain y position
+    /// Returns the difference in height values between this object and target object
     /// </summary>
-    /// <param name="relativeJumpHeight"> gameobject.transform.position.y - transfrom.position.y </param>
     private float FindRelativeHeight(Transform target)
     {
         return target.position.y + target.localScale.y / 2 - transform.position.y + transform.localScale.y / 2;
     }
 
+    /// <summary>
+    /// Returns the jump velocity required to jump to a certain y position
+    /// </summary>
+    /// <param name="relativeJumpHeight"> gameobject.transform.position.y - transfrom.position.y </param>
     private float CaclulateJumpVelocity(float relativeJumpHeight)
     {
         // Prevents error in sqrt() a negative number 
-        // This can occur because enemy waits a specified time before jumping
-        // (player can be below enemy at that point)
         if (relativeJumpHeight < 0) return 0f;
 
         return Mathf.Sqrt(-1f * Physics.gravity.y * relativeJumpHeight);
@@ -285,7 +296,6 @@ public class EnemyMovement : MonoBehaviour
     private void CompressJumpAnimation()
     {
         transform.localScale =  new Vector3(transform.localScale.x, transform.localScale.y * .9f, transform.localScale.z) ;
-        //transform.position = new Vector3(transform.position.x, transform.position.y * .9f, transform.position.z);
         if (transform.localScale.y < enemyStats.originalScale.y/2)
             CancelInvoke("CompressJumpAnimation");
     }

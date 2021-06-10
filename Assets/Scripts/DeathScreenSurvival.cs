@@ -14,6 +14,9 @@ public class DeathScreenSurvival : DeathScreenWave
         timeText.text = "TIME: " + PlayerPrefs.GetInt("LastTimeNumber", 0);
     }
 
+    /// <summary>
+    /// Reload survival mode scene
+    /// </summary>
     public override void PlayAgain()
     {
         SceneManager.LoadScene("SurvivalMode");

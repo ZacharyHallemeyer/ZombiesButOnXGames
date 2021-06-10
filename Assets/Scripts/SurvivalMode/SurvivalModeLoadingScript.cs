@@ -2,7 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-
+/// <summary>
+/// Handles player laoding screen for survival mode
+/// </summary>
 public class SurvivalModeLoadingScript : MonoBehaviour
 {
     // Loading Screen
