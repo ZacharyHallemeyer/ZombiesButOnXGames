@@ -5,13 +5,13 @@ using UnityEngine;
 public class PowerUps : MonoBehaviour
 {
     // Nuke variables
-    public GameObject nukeExplosion;
-    public ParticleSystem nukeSphereParticles;
+    public GameObject pickUpExplosion;
+    public ParticleSystem powerUpParticles;
 
     private void Start()
     {
         AudioManager audioManager = FindObjectOfType<AudioManager>();
-        audioManager.Play("PowerUp");
+        audioManager.Play("PowerUpSpawn");
     }
 
     private void OnTriggerEnter(Collider other)
@@ -39,6 +39,8 @@ public class PowerUps : MonoBehaviour
     /// </summary>
     private void ActivateMaxAmmo()
     {
+        FindObjectOfType<AudioManager>().Play("PowerUpPickUp");
+
         PlayerShooting playerShooting = FindObjectOfType<PlayerShooting>();
         playerShooting.currentGun.currentAmmo = playerShooting.currentGun.magSize;
         playerShooting.currentGun.reserveAmmo = playerShooting.currentGun.ammoIncrementor;
@@ -51,9 +53,14 @@ public class PowerUps : MonoBehaviour
         playerShooting.playerUI.SetGrenadeText(playerShooting.CurrentGrenades);
         playerShooting.playerUI.SetShockWaveText(playerShooting.CurrentShockWaves);
 
-        FindObjectOfType<PlayerUIScript>().ChangePowerUpUI("MaxAmmo");
+        // disable mesh renderer and box collider because explosion particle system is a child of power up
+        gameObject.GetComponent<BoxCollider>().enabled = false;
+        gameObject.GetComponent<MeshRenderer>().enabled = false;
+        powerUpParticles.Stop();
+        pickUpExplosion.SetActive(true);
 
-        Destroy(gameObject);
+        InvokeRepeating("DestroyObject", 2, 0);
+        FindObjectOfType<PlayerUIScript>().ChangePowerUpUI("MaxAmmo");
     }
 
     /// <summary>
@@ -62,13 +69,23 @@ public class PowerUps : MonoBehaviour
     /// </summary>
     private void ActivateDoublePoints()
     {
+        FindObjectOfType<AudioManager>().Play("PowerUpPickUp");
+
         PlayerStats playerStats = FindObjectOfType<PlayerStats>();
+
         // Restart timer if player picks up another double point power up before the first one stops
         playerStats.CancelInvoke("DeactivateDoublePoints");
         playerStats.PointMultiplier = 2;
         playerStats.InvokeRepeating("DeactivateDoublePoints", 30f, .01f);
+
+        // disable mesh renderer and box collider because explosion particle system is a child of power up
+        gameObject.GetComponent<BoxCollider>().enabled = false;
+        gameObject.GetComponent<MeshRenderer>().enabled = false;
+        powerUpParticles.Stop();
+        pickUpExplosion.SetActive(true);
+
+        InvokeRepeating("DestroyObject", 2, 0);
         FindObjectOfType<PlayerUIScript>().ChangePowerUpUI("DoublePoints");
-        Destroy(gameObject);
     }
 
     /// <summary>
@@ -77,22 +94,28 @@ public class PowerUps : MonoBehaviour
     /// </summary>
     private void ActivateNuke()
     {
+        FindObjectOfType<AudioManager>().Play("PowerUpPickUp");
+
         // Add 500 points to player points
         FindObjectOfType<PlayerStats>().CurrentPoints += 500;
         FindObjectOfType<PlayerStats>().ChangeInPointValue();
-        // disable mesh renderer and box collider because explosion particle system is a child of nuke
+
+        // disable mesh renderer and box collider because explosion particle system is a child of power up
         gameObject.GetComponent<BoxCollider>().enabled = false;
         gameObject.GetComponent<MeshRenderer>().enabled = false;
-        nukeSphereParticles.Stop();
-        nukeExplosion.SetActive(true);
+        powerUpParticles.Stop();
+        pickUpExplosion.SetActive(true);
+
+        // 'Kill' all enemies in scene
         EnemyStats[] enemyStats = FindObjectsOfType<EnemyStats>();
         foreach(EnemyStats enemy in enemyStats)
             enemy.Death();
-        InvokeRepeating("DestroyNuke", 2, 0);
+
+        InvokeRepeating("DestroyObject", 2, 0);
         FindObjectOfType<PlayerUIScript>().ChangePowerUpUI("Nuke");
     }
 
-    private void DestroyNuke()
+    private void DestroyObject()
     {
         Destroy(gameObject);
     }

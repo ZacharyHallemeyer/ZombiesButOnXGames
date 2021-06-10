@@ -33,6 +33,8 @@ public class GameMenu : MainMenu
 
     public void PauseGame()
     {
+        // Prevents automatic weapon sounds to continue while in game menu
+        FindObjectOfType<AudioManager>().Stop(FindObjectOfType<PlayerShooting>().currentGun.name);
         MoveToMainMenu();
         Time.timeScale = 0;
         gameMenu.SetActive(true);
@@ -99,7 +101,6 @@ public class GameMenu : MainMenu
             bloomLayer.enabled.value = true;
         bloomLayer.intensity.value = value;
         PlayerPrefs.SetFloat("BloomIntensity", value);
-        Debug.Log("Set new bloom is completed");
     }
 
 }

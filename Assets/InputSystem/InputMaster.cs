@@ -1,4 +1,4 @@
-// GENERATED AUTOMATICALLY FROM 'Assets/InputMaster.inputactions'
+// GENERATED AUTOMATICALLY FROM 'Assets/InputSystem/InputMaster.inputactions'
 
 using System;
 using System.Collections;
@@ -585,7 +585,7 @@ public class @InputMaster : IInputActionCollection, IDisposable
                     ""id"": ""1a748ac1-22d6-4c0b-aac0-23392a3bf9ce"",
                     ""path"": ""<Gamepad>/rightStick"",
                     ""interactions"": """",
-                    ""processors"": ""StickDeadzone,ScaleVector2(x=40,y=10)"",
+                    ""processors"": ""StickDeadzone,ScaleVector2(x=20,y=10)"",
                     ""groups"": ""GamePad"",
                     ""action"": ""MouseLook"",
                     ""isComposite"": false,

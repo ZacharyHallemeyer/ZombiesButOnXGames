@@ -9852,5 +9852,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b7926ce120e9114fad351f1b9ad176e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nukeExplosion: {fileID: 5825774914013732047}
-  nukeSphereParticles: {fileID: 6240143569023748084}
+  pickUpExplosion: {fileID: 5825774914013732047}
+  powerUpParticles: {fileID: 6240143569023748084}

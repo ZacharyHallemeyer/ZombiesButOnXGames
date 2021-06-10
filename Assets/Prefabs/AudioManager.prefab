@@ -51,13 +51,13 @@ MonoBehaviour:
     looping: 0
     source: {fileID: 0}
   - name: GunSMG
-    clip: {fileID: 8300000, guid: b7c89d2fdf9d4894286a891384849b76, type: 3}
+    clip: {fileID: 8300000, guid: 7c5f421a3b4dd4f46a778b1c3d20eaac, type: 3}
     volume: 0.25
     pitch: 1
     looping: 1
     source: {fileID: 0}
   - name: GunAR
-    clip: {fileID: 8300000, guid: e6ed21b4f72aeb44a9d99ad970167a42, type: 3}
+    clip: {fileID: 8300000, guid: 00a592a757200a24ca88806849e73fb0, type: 3}
     volume: 0.25
     pitch: 1
     looping: 1
@@ -86,8 +86,14 @@ MonoBehaviour:
     pitch: 1
     looping: 0
     source: {fileID: 0}
-  - name: PowerUp
-    clip: {fileID: 8300000, guid: 0c84e1ae65defa348b256b2c24c8381b, type: 3}
+  - name: PowerUpSpawn
+    clip: {fileID: 8300000, guid: b0abdceaa4cfb8d41bf4f859bef161dc, type: 3}
+    volume: 0.474
+    pitch: 1
+    looping: 0
+    source: {fileID: 0}
+  - name: PowerUpPickUp
+    clip: {fileID: 8300000, guid: 79b751f0a9c93bf4aa405ac453160a57, type: 3}
     volume: 0.474
     pitch: 1
     looping: 0

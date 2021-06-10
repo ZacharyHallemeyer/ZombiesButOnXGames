@@ -26,10 +26,10 @@ public class ControlsMenu : MonoBehaviour
     private bool rebindInPogress = false;
 
 
-    private void Awake()
-    {
-    }
-
+    /// <summary>
+    /// Sets the values of control keyboard menu with the current keyboard controls 
+    /// Dependencies: SetControlSliders
+    /// </summary>
     public void SetControlMenuKeyboard()
     {
         SetControls setControls = gameObject.AddComponent<SetControls>();
@@ -61,8 +61,14 @@ public class ControlsMenu : MonoBehaviour
                             inputMaster.Player.Special.bindings[0].ToDisplayString();
         adsKeyboardText.text = "ADS: " +
                             inputMaster.Player.ADS.bindings[0].ToDisplayString();
+
+        SetControlSliders();
     }
 
+    /// <summary>
+    /// Sets the values of control gamepad menu with the current gamepad controls 
+    /// Dependencies: SetControlSliders
+    /// </summary>
     public void SetControlMenuGamepad()
     {
         SetControls setControls = gameObject.AddComponent<SetControls>();
@@ -87,9 +93,15 @@ public class ControlsMenu : MonoBehaviour
                             inputMaster.Player.Special.bindings[1].ToDisplayString();
         adsGamepadText.text = "ADS: " +
                     inputMaster.Player.ADS.bindings[1].ToDisplayString();
+
+        SetControlSliders();
     }
 
     // KEYBOARD AND MOUSE ======================================================================
+
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewShootKeyboard()
     {
         if (rebindInPogress) return;
@@ -100,6 +112,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindShootKeyboard()
     {
         shootKeyboardText.text = "SHOOT: " + inputMaster.Player.Shoot.bindings[0].ToDisplayString();
@@ -107,6 +122,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewCrouchKeyboard()
     {
         if (rebindInPogress) return;
@@ -117,6 +135,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindCrouchKeyboard()
     {
         crouchKeyboardText.text = "CROUCH: " +
@@ -125,6 +146,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewGrappleKeyboard()
     {
         if (rebindInPogress) return;
@@ -135,6 +159,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindGrappleKeyboard()
     {
         grappleKeyboardText.text = "GRAPPLE: " +
@@ -143,6 +170,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewSwitchWeaponKeyboard()
     {
         if (rebindInPogress) return;
@@ -153,6 +183,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindWeaponKeyboard()
     {
         switchKeyboardText.text = "SWITCH: " +
@@ -163,6 +196,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewReloadKeyboard()
     {
         if (rebindInPogress) return;
@@ -173,6 +209,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindReloadKeyboard()
     {
         reloadKeyboardText.text = "RELOAD: " +
@@ -181,6 +220,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewInteractKeyboard()
     {
         if (rebindInPogress) return;
@@ -191,6 +233,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindInteractKeyboard()
     {
         interactKeyboardText.text = "INTERACT: " +
@@ -199,6 +244,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewGrenadeKeyboard()
     {
         if (rebindInPogress) return;
@@ -209,6 +257,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindGrenadeKeyboard()
     {
         grenadeKeyboardText.text = "GRENADE: " +
@@ -217,6 +268,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewSpecialKeyboard()
     {
         if (rebindInPogress) return;
@@ -227,6 +281,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindSpecialKeyboard()
     {
         specialKeyboardText.text = "SPECIAL: " +
@@ -235,6 +292,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewADSKeyboard()
     {
         if (rebindInPogress) return;
@@ -245,6 +305,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindADSKeyboard()
     {
         adsKeyboardText.text = "ADS: " +
@@ -257,6 +320,9 @@ public class ControlsMenu : MonoBehaviour
 
     // GAMEPAD ===================================================================================
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewShootGamepad()
     {
         if (rebindInPogress) return;
@@ -267,6 +333,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindShootGamepad()
     {
         shootGamepadText.text = "SHOOT: " + inputMaster.Player.Shoot.bindings[1].ToDisplayString();
@@ -274,6 +343,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewCrouchGamepad()
     {
         if (rebindInPogress) return;
@@ -284,6 +356,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindCrouchGamepad()
     {
         crouchGamepadText.text = "CROUCH: " +
@@ -292,6 +367,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewGrappleGamepad()
     {
         if (rebindInPogress) return;
@@ -302,6 +380,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindGrappleGamepad()
     {
         grappleGamepadText.text = "GRAPPLE: " +
@@ -310,6 +391,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewSwitchWeaponGamepad()
     {
         if (rebindInPogress) return;
@@ -320,6 +404,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindWeaponGamepad()
     {
         switchGamepadText.text = "SWITCH: " +
@@ -338,6 +425,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindReloadGamepad()
     {
         reloadGamepadText.text = "RELOAD: " +
@@ -346,6 +436,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewInteractGamepad()
     {
         if (rebindInPogress) return;
@@ -356,6 +449,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindInteractGamepad()
     {
         interactGamepadText.text = "INTERACT: " +
@@ -364,6 +460,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewGrenadeGamepad()
     {
         if (rebindInPogress) return;
@@ -375,6 +474,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindGrenadeGamepad()
     {
         grenadeGamepadText.text = "GRENADE: " +
@@ -383,6 +485,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewSpecialGamepad()
     {
         if (rebindInPogress) return;
@@ -394,6 +499,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindSpecialGamepad()
     {
         specialGamepadText.text = "SPECIAL: " +
@@ -402,6 +510,9 @@ public class ControlsMenu : MonoBehaviour
         OnRebindComplete();
     }
 
+    /// <summary>
+    /// Sets new binding
+    /// </summary>
     public void SetNewADSGamepad()
     {
         if (rebindInPogress) return;
@@ -412,6 +523,9 @@ public class ControlsMenu : MonoBehaviour
                             .Start();
     }
 
+    /// <summary>
+    /// Finishes new binding
+    /// </summary>
     public void OnRebindADSGamepad()
     {
         adsGamepadText.text = "ADS: " +
@@ -422,15 +536,22 @@ public class ControlsMenu : MonoBehaviour
 
     // END OF GAMEPAD ============================================================================
 
+    /// <summary>
+    /// returns a string that unity input system can read as a path. 
+    /// Only works on strings that results from this kind of value:
+    /// inputMaster.Player.ADS.bindings[1].ToString()
+    /// </summary>
     private string GetInputString(string str)
     {
         return str.Substring(str.IndexOf('<'), str.IndexOf('[') - str.IndexOf('<'));
     }
 
+    /// <summary>
+    /// Rebinds controls and disposes of rebinding operation
+    /// </summary>
     public void OnRebindComplete()
     {
         rebindingOperation.Dispose();
-        //FindObjectOfType<PlayerStats>().RebindContols();
         FindObjectOfType<PlayerShooting>().RebindContols();
         FindObjectOfType<PlayerMovement>().RebindContols();
         rebindInPogress = false;

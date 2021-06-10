@@ -5,6 +5,10 @@ using UnityEngine.InputSystem;
 
 public class SetControls : MonoBehaviour
 {
+    /// <summary>
+    /// Returns an input system with player preferred controls 
+    /// Should be called everytime InputMaster is instiated
+    /// </summary>
     public InputMaster SetPlayerControls(InputMaster inputMaster)
     {
         // Set keyboard and mouse contols
@@ -74,6 +78,11 @@ public class SetControls : MonoBehaviour
         return inputMaster;
     }
 
+    /// <summary>
+    /// returns a string that unity input system can read as a path. 
+    /// Only works on strings that results from this kind of value:
+    /// inputMaster.Player.ADS.bindings[1].ToString()
+    /// </summary>
     private string GetInputString(string str)
     {
         return str.Substring(str.IndexOf('<'), str.IndexOf('[') - str.IndexOf('<'));

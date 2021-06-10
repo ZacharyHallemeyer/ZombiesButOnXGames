@@ -6,7 +6,8 @@ using System.Collections.Generic;
 public class PlayerMovement : Movement
 {
     //Assingables
-    public Transform playerCam;
+    public Transform playerCamPosition;
+    public Camera playerCam;
     public Transform orientation;
     public PlayerShooting playerShooting;
     public PlayerUIScript playerUIScript;
@@ -20,7 +21,9 @@ public class PlayerMovement : Movement
     //Rotation and look
     private float xRotation;
     private float desiredX;
-    private float sensitivity = 2000f;
+    private float normalFOV = 60;
+    private float adsFOV = 40;
+    public float sensitivity = 2000f;
     private float normalSensitivity = 2000f;
     private float adsSensitivity = 500f;
     // Default value for sens multipliers are 1 
@@ -212,7 +215,8 @@ public class PlayerMovement : Movement
         float xMag = mag.x, yMag = mag.y;
 
         //Counteract sliding and sloppy movement
-        CounterMovement(x, y, mag);
+        if(!IsOnWall)
+            CounterMovement(x, y, mag);
 
         //If speed is larger than maxspeed, cancel out the input so you don't go over max speed
         if (crouching)
@@ -321,14 +325,6 @@ public class PlayerMovement : Movement
     }
 
     /// <summary>
-    /// Allows player to climb up objects that are labeled as ground
-    /// </summary>
-    private void Climb()
-    {
-        //rb.AddForce(Vector3.up * climbForce * Time.deltaTime);
-    }
-
-    /// <summary>
     /// recursively calls itself until player velocity is less than .1 in which case
     /// isSliding is set equal to false
     /// </summary>
@@ -352,7 +348,7 @@ public class PlayerMovement : Movement
                        * sensitivity * Time.fixedDeltaTime * sensMultiplier;
 
         //Find current look rotation
-        Vector3 rot = playerCam.transform.localRotation.eulerAngles;
+        Vector3 rot = playerCamPosition.transform.localRotation.eulerAngles;
         desiredX = rot.y + mouseX;
 
         //Rotate, and also make sure we dont over- or under-rotate.
@@ -360,7 +356,7 @@ public class PlayerMovement : Movement
         xRotation = Mathf.Clamp(xRotation, -89f, 89f);
 
         // Perform the rotations
-        playerCam.localRotation = Quaternion.Euler(xRotation, desiredX, wallRunCameraTilt);
+        playerCamPosition.localRotation = Quaternion.Euler(xRotation, desiredX, wallRunCameraTilt);
         orientation.localRotation = Quaternion.Euler(0, desiredX, 0);
 
         
@@ -378,6 +374,11 @@ public class PlayerMovement : Movement
         else if (wallRunCameraTilt < 0 && !isWallRight && !isWallLeft)
             wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
 
+        // ADS zoom in and out
+        if (sensitivity == adsSensitivity && playerCam.fieldOfView > adsFOV)
+            playerCam.fieldOfView -= 1f;
+        if (sensitivity == normalSensitivity && playerCam.fieldOfView < normalFOV)
+            playerCam.fieldOfView += 1f;
     }
 
     private void CounterMovement(float x, float y, Vector2 mag)
@@ -418,8 +419,6 @@ public class PlayerMovement : Movement
     /// </summary>
     private void Wallrun()
     {
-        //Debug.Log("StartWallRun is called");
-
         // Cancel out y velocity
         if (rb.velocity.y < 0)
         {
@@ -432,13 +431,20 @@ public class PlayerMovement : Movement
         if (crouching)
             StopCrouch();
 
+        // get player off wall if they go over max time
         if(timeOnWall > maxtimeOnWall)
         {
-            // send in true because player is motionless
-            WallJump(true);
+            if (isWallBackward)
+                rb.AddForce(orientation.forward * jumpForce * Time.deltaTime, ForceMode.Impulse);
+            if (isWallForward)
+                rb.AddForce(-orientation.forward * jumpForce * Time.deltaTime, ForceMode.Impulse);
+            if (isWallLeft)
+                rb.AddForce(orientation.right * jumpForce * Time.deltaTime, ForceMode.Impulse);
+            if (isWallRight)
+                rb.AddForce(-orientation.right * jumpForce * Time.deltaTime, ForceMode.Impulse);
         }
 
-        //Make sure character sticks to wall
+        // Stick player to wall
         if (isWallRight)
             rb.AddForce(orientation.right * wallrunForce / 5 * Time.deltaTime);
         else if(isWallLeft)
@@ -465,10 +471,10 @@ public class PlayerMovement : Movement
     {
         IsOnWall = Physics.CheckSphere(wallCheck.position + Vector3.up, wallDistance, whatIsWall);
         if (IsOnWall) Wallrun();
-        isWallRight = Physics.Raycast(transform.position, orientation.right, 1f, whatIsWall);
-        isWallLeft = Physics.Raycast(transform.position, -orientation.right, 1f, whatIsWall);
-        isWallForward = Physics.Raycast(transform.position, orientation.forward, 1f, whatIsWall);
-        isWallBackward = Physics.Raycast(transform.position, -orientation.forward, 1f, whatIsWall);
+        isWallRight = Physics.Raycast(transform.position, orientation.right, 2f, whatIsWall);
+        isWallLeft = Physics.Raycast(transform.position, -orientation.right, 2f, whatIsWall);
+        isWallForward = Physics.Raycast(transform.position, orientation.forward, 2f, whatIsWall);
+        isWallBackward = Physics.Raycast(transform.position, -orientation.forward, 2f, whatIsWall);
 
         //leave wall run
         if (!IsOnWall && !playerShooting.IsGrappling) StopWallRun();

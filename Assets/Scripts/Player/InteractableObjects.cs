@@ -118,36 +118,36 @@ public class InteractableObjects : MonoBehaviour
             case "MysteryBox":
                 currentObject = mysteryBox;
                 if (IsWeaponSpawned)
-                    text.text = "Press E To Pick Up Weapon";
+                    text.text = "Interact To Pick Up Weapon";
                 else
-                    text.text = "Press E TO Purchase Weapon For " + mysteryBox.price + " Points";
+                    text.text = "Interact To Purchase Weapon For " + mysteryBox.price + " Points";
                 break;
             case "UpgradeGrapple":
                 currentObject = upgradeGrapple;
-                text.text = "Press E to Purchase " + 1f + " More Seconds Of Grapple Time For " + upgradeGrapple.price + " Points";
+                text.text = "Interact to Purchase " + 1f + " More Seconds Of Grapple Time For " + upgradeGrapple.price + " Points";
                 break;
             case "UpgradeDamage":
                 currentObject = upgradeDamage;
-                text.text = "Press E to Purchase " + 1f + " More Damage For Current Gun For " + upgradeDamage.price + " Points";
+                text.text = "Interact to Purchase " + 1f + " More Damage For Current Gun For " + upgradeDamage.price + " Points";
                 break;
             case "ShockWaveIncrease":
                 currentObject = shockWaveIncrease;
-                text.text = "Press E to Purchase A Shock Wave Item For " + shockWaveIncrease.price + " Points";
+                text.text = "Interact to Purchase A Shock Wave Item For " + shockWaveIncrease.price + " Points";
                 break;
             case "ExtraLife":
                 currentObject = extraLife;
-                text.text = "Press E to Purchase An Extra Life For " + extraLife.price + " Points";
+                text.text = "Interact to Purchase An Extra Life For " + extraLife.price + " Points";
                 break;
             case "RefillAmmo":
                 currentObject = refillAmmo;
-                text.text = "Press E To Refill Ammo For " + refillAmmo.price + " Points";
+                text.text = "Interact To Refill Ammo For " + refillAmmo.price + " Points";
                 break;
             case "GrenadeIncrease":
                 currentObject = grenadeIncrease;
-                text.text = "Press E To Purchase A Grenade For " + grenadeIncrease.price + " Points";
+                text.text = "Interact To Purchase A Grenade For " + grenadeIncrease.price + " Points";
                 break;
             case "ExitShop":
-                text.text = "Press E To Exit Shop";
+                text.text = "Interact To Exit Shop";
                 break;
             default:
                 return;

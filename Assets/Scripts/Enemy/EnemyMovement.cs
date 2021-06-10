@@ -17,15 +17,14 @@ public class EnemyMovement : MonoBehaviour
     public float maxSpeed = 40f;
     
     public float MoveSpeed { get; set; } = 2000;
-    public int randomjumpMultiplier = 5;
 
-    public float groundedDistance = .75f;
-    public float timeMotionless = 0f;
-    public float maxTimeMotionless = 2f;
-    public float range = 20f;
-    public float threshold = .5f;
-    public float jumpMultiplier = 1.5f;
-    public float minJumpVelocity = 7f;
+    private float groundedDistance = 2f;
+    private float timeMotionless = 0f;
+    private float maxTimeMotionless = 2f;
+    private float range = 25f;
+    private float threshold = .75f;
+    private float jumpMultiplier = 1.5f;
+    private float minJumpVelocity = 7f;
     public bool grounded, jumpActive;
     public LayerMask whatIsGround;
     public LayerMask whatIsObstacle;
@@ -114,11 +113,10 @@ public class EnemyMovement : MonoBehaviour
         direction = (new Vector3(player.position.x, 0, player.position.z) 
                      - new Vector3(transform.position.x, 0, transform.position.z));
 
-
         // Player is above enemy so jump up to them
         if (player.position.y - transform.position.y > 1f && !jumpActive
                 && InRange() && IsPlayerInCurrentDirection(threshold)
-                && rb.velocity.y < 10f)
+                && rb.velocity.y < 1f)
             StartCoroutine(WaitAndJump(jumpMultiplier, .2f, player));
 
         // Check if enemy is going faster than max speed return so enemy does not recieve more force
@@ -148,7 +146,8 @@ public class EnemyMovement : MonoBehaviour
     /// <param name="threshold">the closer to 1 threshold becomes the more accurate the function becomes</param>
     private bool IsPlayerInCurrentDirection(float threshold)
     {
-        //Debug.Log(Vector3.Dot(transform.forward.normalized, rb.velocity.normalized));
+        if (rb.velocity.magnitude < .1)
+            return true;
         if(Vector3.Dot(transform.forward.normalized, rb.velocity.normalized) > threshold)
             return true;
         return false;

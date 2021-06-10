@@ -41,6 +41,9 @@ public class PlayerUIScript : MonoBehaviour
     // Crouch UI
     public Image crouchImage;
 
+    // Death UI
+    public TextMeshProUGUI deathText;
+
     // Grapple =============================
     public void SetMaxGrapple(float maxValue)
     {
@@ -229,4 +232,20 @@ public class PlayerUIScript : MonoBehaviour
     }
 
     // End of Crouch =======================
+
+    // Death ===============================
+
+    public void ChangeDeathUI(int currentAmountOfLives)
+    {
+        deathText.text = currentAmountOfLives.ToString() + " MORE CHANCES!";
+        InvokeRepeating("HideDeathUI", 3f, 0f);
+    }
+
+    public void HideDeathUI()
+    {
+        deathText.text = "";
+        CancelInvoke("HideDeathUI");
+    }
+
+    // End of Death ========================
 }

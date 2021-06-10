@@ -36,8 +36,6 @@ public static class SaveSystem
             return playerData;
         }
         else
-        {
             return null;
-        }
     }
 }

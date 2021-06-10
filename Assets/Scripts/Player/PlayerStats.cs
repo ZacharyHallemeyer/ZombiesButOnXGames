@@ -144,6 +144,7 @@ public class PlayerStats : MonoBehaviour
                 health = maxHealth;
                 playerUI.ChangeHealthUI(health, maxHealth);
                 transform.position = spawnPosition;
+                playerUI.ChangeDeathUI(CurrentLives);
             }
         }
     }
@@ -222,8 +223,13 @@ public class PlayerStats : MonoBehaviour
             SaveSystem.SavePlayerData(playerData);
         }
 
+        // These are used for death screen
+        PlayerPrefs.SetInt("LastWaveNumber", waveSpawner.waveNumber - 1);
+        PlayerPrefs.SetInt("LastKillNumber", TotalEnemiesKilled);
+        PlayerPrefs.SetInt("LastPointNumber", CurrentPoints);
+
         // Reload current scene
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene("DeathScreen");
     }
 
     /// <summary>

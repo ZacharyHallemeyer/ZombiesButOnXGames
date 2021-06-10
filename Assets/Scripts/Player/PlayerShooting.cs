@@ -22,7 +22,6 @@ public class PlayerShooting : MonoBehaviour
     public Rigidbody playerRB;
 
     public LayerMask whatIsGrapple;
-    private Coroutine grappleRecovery;
 
     // Numerical variables
     private float maxGrappleDistance = 200f, minGrappleDistance = 10f;
@@ -59,8 +58,7 @@ public class PlayerShooting : MonoBehaviour
 
     public Dictionary<string, GunInformation> allGunInformation { get; private set; } = new Dictionary<string, GunInformation>();
 
-    public float timeSinceLastShoot = 5f;
-    public int scrollingCounter = 0;
+    public float timeSinceLastShoot = 5f;       // Garbage value
 
     // Animation variables
     public int animationCounter = 0;
@@ -111,7 +109,7 @@ public class PlayerShooting : MonoBehaviour
     public int CurrentGrenades { get; set; } = 5;
     public Transform grenadeFirePoint;
     public GameObject grenadePrefab;
-    public int grenadeThrowForce;
+    private int grenadeThrowForce = 2500;
 
     // Item variables
     public int CurrentShockWaves { get; set; } = 3;
@@ -296,56 +294,14 @@ public class PlayerShooting : MonoBehaviour
             if (inputMaster.Player.Grapple.ReadValue<float>() == 0 
                     || Mathf.Abs((player.position - GrapplePoint).magnitude) < 5f 
                     && IsGrappling)
+            {
+                releasedGrappleControlSinceLastGrapple = true;
                 StopGrapple();
+            }
         }
 
         // Handle gun shooting ====================================
-        if (!isAnimInProgress)
-        {
-            // Switching between primary and secondary by using mouse scroll wheel or '1' on keyboard
-            if (inputMaster.Player.SwitchWeaponMouseWheel.ReadValue<Vector2>().y != 0
-                || inputMaster.Player.SwitchWeaponButton.triggered)
-            {
-                ChangeCurrentWeapon();
-            }
-            
 
-            // Shoot
-            if(!isShooting)
-            {
-                if (inputMaster.Player.Shoot.ReadValue<float>() != 0 && currentGun.currentAmmo > 0)
-                {
-                    if (currentGun.isAutomatic)
-                    {
-                        isShooting = true;
-                        ParticleSystem.RotationOverLifetimeModule rot = currentGun.gun.rotationOverLifetime;
-                        rot.enabled = true;
-                        InvokeRepeating("AutomaticShoot", 0f, currentGun.fireRate);
-                    }
-                    else
-                        SingleFireShoot();
-                }
-            }
-            else if (inputMaster.Player.Shoot.ReadValue<float>() == 0)
-            {
-                if (currentGun.isAutomatic)
-                {
-                    StopAutomaticShoot();
-                    isShooting = false;
-                }
-            }
-            // Reload
-            if (currentGun.currentAmmo < currentGun.magSize && inputMaster.Player.Reload.triggered 
-                     && currentGun.reserveAmmo > 0)
-            {
-                StopAutomaticShoot();
-                Reload();
-            }
-
-            // Handle Grenades
-            if (inputMaster.Player.Grenade.triggered && CurrentGrenades > 0)
-                ThrowGrenade();
-        }
         // Handle items
         if (inputMaster.Player.Special.triggered && CurrentShockWaves > 0)
         {
@@ -353,6 +309,51 @@ public class PlayerShooting : MonoBehaviour
             playerUI.SetShockWaveText(CurrentShockWaves);
             playerItems.StartShockWave();
         }
+
+        // Do not shoot if animation is in progress
+        if (isAnimInProgress) return;
+
+        // Switching between primary and secondary by using mouse scroll wheel or '1' on keyboard
+        if (inputMaster.Player.SwitchWeaponMouseWheel.ReadValue<Vector2>().y != 0
+            || inputMaster.Player.SwitchWeaponButton.triggered)
+            ChangeCurrentWeapon();
+            
+        if(!isShooting)
+        {
+            // Shoot
+            if (inputMaster.Player.Shoot.ReadValue<float>() != 0 && currentGun.currentAmmo > 0)
+            {
+                if (currentGun.isAutomatic)
+                {
+                    isShooting = true;
+                    ParticleSystem.RotationOverLifetimeModule rot = currentGun.gun.rotationOverLifetime;
+                    rot.enabled = true;
+                    InvokeRepeating("AutomaticShoot", 0f, currentGun.fireRate);
+                }
+                else
+                    SingleFireShoot();
+            }
+        }
+        else if (inputMaster.Player.Shoot.ReadValue<float>() == 0)
+        {
+            // Stop shooting
+            if (currentGun.isAutomatic)
+            {
+                StopAutomaticShoot();
+                isShooting = false;
+            }
+        }
+        // Reload
+        if (currentGun.currentAmmo < currentGun.magSize && inputMaster.Player.Reload.triggered 
+                    && currentGun.reserveAmmo > 0)
+        {
+            StopAutomaticShoot();
+            Reload();
+        }
+
+        // Handle Grenades
+        if (inputMaster.Player.Grenade.triggered && CurrentGrenades > 0)
+            ThrowGrenade();
     }
 
     // Called after Update function
@@ -362,6 +363,8 @@ public class PlayerShooting : MonoBehaviour
         if (IsGrappling)
             ContinueGrapple();
     }
+
+    // GUNS =================================================================================
 
     /// <summary>
     /// fires a raycast from firepoint and damages if ray hits an enemy
@@ -383,10 +386,10 @@ public class PlayerShooting : MonoBehaviour
         // Reload if current ammo is zero
         if (currentGun.currentAmmo <= 0)
         {
+            StopAutomaticShoot();
             if (currentGun.reserveAmmo > 0)
             {
                 Reload();
-                StopAutomaticShoot();
             }
         }
 
@@ -408,14 +411,16 @@ public class PlayerShooting : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Stops AutomaticShoot function and stops current gun from rotating (automatic guns rotate while firing)
+    /// </summary>
     private void StopAutomaticShoot()
     {
         ParticleSystem.RotationOverLifetimeModule rot = currentGun.gun.rotationOverLifetime;
         rot.enabled = false;
         if (isAudioPlaying)
         {
-            isAudioPlaying = false;
-            audioManager.Stop(currentGun.name);
+            InvokeRepeating("SoundFadeOut", 0f, .1f);
         }
         isShooting = false;
         CancelInvoke("AutomaticShoot");
@@ -501,6 +506,24 @@ public class PlayerShooting : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Decreases the sound of current gun over time. Should be called with stoping automatic weapons
+    /// </summary>
+    public void SoundFadeOut()
+    {
+        if (audioManager.FadeOut(currentGun.name))
+        {
+            CancelInvoke("SoundFadeOut");
+            isAudioPlaying = false;
+            audioManager.Stop(currentGun.name);
+            audioManager.ResetSound(currentGun.name);
+        }
+    }
+
+    /// <summary>
+    /// Plays current gun's bullet particly system. Must be called with invoke repeating with the wait time
+    /// as current gun's reload time
+    /// </summary>
     private void SingleFireShootAnim()
     {
         currentGun.gun.Play();
@@ -518,7 +541,7 @@ public class PlayerShooting : MonoBehaviour
     }
 
     /// <summary>
-    /// This takes 6 iterations
+    /// This takes 6 iterations. Expands current gun by increasing particle system radius
     /// </summary>
     private void ReloadAnimCompress()
     {
@@ -534,7 +557,7 @@ public class PlayerShooting : MonoBehaviour
     }
 
     /// <summary>
-    /// This takes 4 iterations
+    /// This takes 4 iterations. Compress current gun by decreasing particle system radius
     /// </summary>
     private void ReloadAnimExpand()
     {
@@ -573,21 +596,34 @@ public class PlayerShooting : MonoBehaviour
         currentGun.gun.Play();
     }
 
-    // Change current weapon to secondary and vice versa
-    // Dependencies: ChangeCurrentWeaponAnimation
+    /// <summary>
+    /// Change current weapon to secondary and vice versa
+    /// Dependencies: ChangeCurrentWeaponAnimation
+    /// </summary>
     private void ChangeCurrentWeapon()
     {
+        // Prevents automatic weapon sounds to continue infinitly
+        if (isAudioPlaying)
+        {
+            isAudioPlaying = false;
+            audioManager.Stop(currentGun.name);
+        }
+        audioManager.Play("GunReload");
         StopAutomaticShoot();
         isAnimInProgress = true;
+
         GunInformation temp = currentGun;
         currentGun = secondaryGun;
         secondaryGun = temp;
+
         playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
         InvokeRepeating("ChangeCurrentGunAnimationExapnd", 0, 1f / 10f);
     }
 
     /// <summary>
-    /// 
+    /// Expands current gun by increasing particle system radius
+    /// Has be called with invoke repeating and takes 10 iterations to finished. Divide total time by 10 for time repeat 
+    /// Dependencies: ChangeCurrentGunAnimationCompress
     /// </summary>
     private void ChangeCurrentGunAnimationExapnd()
     {
@@ -620,7 +656,8 @@ public class PlayerShooting : MonoBehaviour
     }
 
     /// <summary>
-    /// 
+    /// Compress current gun by decreasing particle system radius
+    /// Has be called with invoke repeating and takes 10 iterations to finished. Divide total time by 10 for time repeat 
     /// </summary>
     private void ChangeCurrentGunAnimationCompress()
     {
@@ -643,14 +680,18 @@ public class PlayerShooting : MonoBehaviour
 
     /// <summary>
     /// Resets current gun and starts pick up weapon animation
+    /// Dependencies: PickWeapnAnimationExpand
     /// </summary>
-    /// <param name="gunName"></param>
     public void PickUpWeapon(string gunName)
     {
         isAnimInProgress = true;
         StartCoroutine(PickWeapnAnimationExpand(0, gunName));
     }
 
+    /// <summary>
+    /// Take 10 iterations and switches current gun with gun cooresponding to gunName (parem)
+    /// Dependcies: ChangeCurrentGunAnimationCompress
+    /// </summary>
     private IEnumerator PickWeapnAnimationExpand(int counter, string gunName)
     {
         yield return new WaitForSeconds(1f / 10f);
@@ -701,6 +742,8 @@ public class PlayerShooting : MonoBehaviour
         playerItems.StartShockWave();
     }
 
+    // END OF GUNS ==========================================================================
+
     // GRAPPLE ==============================================================================
 
     /// <summary>
@@ -723,8 +766,6 @@ public class PlayerShooting : MonoBehaviour
 
             playerMovement.StopCrouch();
             // Turn off grapple recovery
-            if (grappleRecovery != null)
-                StopCoroutine(grappleRecovery);
 
             // Turn player gravity off
             playerRB.useGravity = false;
@@ -791,7 +832,6 @@ public class PlayerShooting : MonoBehaviour
             IsGrappleRecoveryInProgress = true;
             InvokeRepeating("GrappleRecovery", 0f, .1f);
         }
-        releasedGrappleControlSinceLastGrapple = true;
         playerRB.useGravity = true;
         lineRender.positionCount = 0;
         IsGrappling = false;

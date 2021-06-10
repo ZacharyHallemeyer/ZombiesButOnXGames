@@ -51,12 +51,16 @@ public class GameManager : MonoBehaviour
         loadingScreen.InvokeRepeating("TurnOffLoadingScreen", .5f, .01f);
     }
 
+    /// <summary>
+    /// Spawn random power up on a rooftop
+    /// Dependencies: GenerateWaveEnvironment class
+    /// </summary>
     public void SpawnPowerUp()
     {
-        Debug.Log("Power up is spawned");
-        GameObject powerUp = Instantiate(powerUps[Random.Range(0, powerUps.Length)],
+        int index = Random.Range(0, powerUps.Length);
+        GameObject powerUp = Instantiate(powerUps[index],
                              environment.powerUpSpawnPositions[Random.Range(0, environment.powerUpSpawnPositions.Length)],
-                             new Quaternion(0, 0, 0, 0));
+                             powerUps[index].transform.rotation);
         StartCoroutine(SelfDestruct(powerUp));
     }
 

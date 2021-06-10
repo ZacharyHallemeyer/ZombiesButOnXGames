@@ -83,9 +83,21 @@ public class AudioManager : MonoBehaviour
         s.source.Stop();
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
+    public bool FadeOut(string name)
+    {
+        Sound s = Array.Find(sounds, sound => sound.name == name);
+        s.source.volume -= .1f;
+        if (s.source.volume <= .01f)
+            return true;
+        return false;
+    }
+
+    public void ResetSound(string name)
+    {
+        Sound s = Array.Find(sounds, sound => sound.name == name);
+        s.source.volume = PlayerPrefs.GetFloat("SoundEffectsVolume", .75f);
+    }
+
     public void SetMusicVolume()
     {
         foreach (Sound s in sounds)
