@@ -18,7 +18,7 @@ public class SurviveEnemyStats : MonoBehaviour
                                            transform.localScale.y * Random.Range(.5f, 1.5f),
                                            transform.localScale.z);
         transform.localScale = originalScale;
-        InvokeRepeating("TurnOnRB", 5f, 0);
+        InvokeRepeating("TurnOnRB", 5f, 0.1f );
     }
 
     private void TurnOnRB()

@@ -20,7 +20,7 @@ public class EnemyMovement : MonoBehaviour
 
     private float groundedDistance = 2f;
     private float timeMotionless = 0f;
-    private float maxTimeMotionless = 2f;
+    private float maxTimeMotionless = .5f;
     private float range = 25f;
     private float threshold = .75f;
     private float jumpMultiplier = 1.5f;

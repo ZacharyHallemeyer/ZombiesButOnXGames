@@ -9,6 +9,7 @@ public class PlayerUIScript : MonoBehaviour
     public Slider grappleSlider;
     public Gradient grappleGradient;
     public Image grappleFill;
+    public TextMeshProUGUI grappleOutOfBoundsText;
 
     // Health UI
     public Image healthImage;
@@ -57,6 +58,18 @@ public class PlayerUIScript : MonoBehaviour
     {
         grappleSlider.value = grappleTime;
         grappleFill.color = grappleGradient.Evaluate(grappleSlider.normalizedValue);
+    }
+
+    public void GrappleOutOfBoundsUI()
+    {
+        grappleOutOfBoundsText.text = "X";
+        InvokeRepeating("HideGrappleOutOfBoundsUI", 1f, 0f);
+    }
+
+    private void HideGrappleOutOfBoundsUI()
+    {
+        grappleOutOfBoundsText.text = "";
+        CancelInvoke("HideGrappleOutOfBoundsUI");
     }
 
     // End of Grapple ======================
@@ -194,9 +207,11 @@ public class PlayerUIScript : MonoBehaviour
     {
         CancelInvoke("ChangeToStandAnim");
         InvokeRepeating("ChangeToCrouchAnim", 0f, .01f);
-        //crouchImage.rectTransform.sizeDelta = new Vector2(50, 25);
     }
 
+    /// <summary>
+    /// Compress square that represents player state. Must be called with Invoke repeating
+    /// </summary>
     public void ChangeToCrouchAnim()
     {
         if (crouchImage.rectTransform.sizeDelta.y > 25)
@@ -217,6 +232,9 @@ public class PlayerUIScript : MonoBehaviour
         InvokeRepeating("ChangeToStandAnim", 0f, .01f);
     }
 
+    /// <summary>
+    /// Expands square that represents player state. Must be called with Invoke repeating
+    /// </summary>
     public void ChangeToStandAnim()
     {
         if(crouchImage.rectTransform.sizeDelta.y < 50)

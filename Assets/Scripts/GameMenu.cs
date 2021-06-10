@@ -34,15 +34,23 @@ public class GameMenu : MainMenu
     public void PauseGame()
     {
         // Prevents automatic weapon sounds to continue while in game menu
-        FindObjectOfType<AudioManager>().Stop(FindObjectOfType<PlayerShooting>().currentGun.name);
+        if(FindObjectOfType<PlayerShooting>() != null)
+            FindObjectOfType<AudioManager>().Stop(FindObjectOfType<PlayerShooting>().currentGun.name);
         MoveToMainMenu();
         Time.timeScale = 0;
         gameMenu.SetActive(true);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         // Prevents bug where game menu has a wrong reference to these scripts
-        FindObjectOfType<PlayerMovement>().enabled = false;
-        FindObjectOfType<PlayerShooting>().enabled = false;
+        if(FindObjectOfType<PlayerMovement>() != null)
+            FindObjectOfType<PlayerMovement>().enabled = false;
+        if(FindObjectOfType<PlayerShooting>() != null)
+            FindObjectOfType<PlayerShooting>().enabled = false;
+
+        if(FindObjectOfType<SurvivalPlayerMovement>() != null)
+            FindObjectOfType<SurvivalPlayerMovement>().enabled = false;
+        if(FindObjectOfType<SurvivalPlayerShoot>() != null)
+            FindObjectOfType<SurvivalPlayerShoot>().enabled = false;
     }
 
     public void ResumeGame()
@@ -51,8 +59,15 @@ public class GameMenu : MainMenu
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         // Prevents bug where game menu has a wrong reference to these scripts
-        FindObjectOfType<PlayerMovement>().enabled = true;
-        FindObjectOfType<PlayerShooting>().enabled = true;
+        if (FindObjectOfType<PlayerMovement>() != null)
+            FindObjectOfType<PlayerMovement>().enabled = true;
+        if (FindObjectOfType<PlayerShooting>() != null)
+            FindObjectOfType<PlayerShooting>().enabled = true;
+
+        if (FindObjectOfType<SurvivalPlayerMovement>() != null)
+            FindObjectOfType<SurvivalPlayerMovement>().enabled = true;
+        if (FindObjectOfType<SurvivalPlayerShoot>() != null)
+            FindObjectOfType<SurvivalPlayerShoot>().enabled = true;
     }
 
     public void ExitToMainMenu()

@@ -98,6 +98,19 @@ public class AudioManager : MonoBehaviour
         s.source.volume = PlayerPrefs.GetFloat("SoundEffectsVolume", .75f);
     }
 
+    /// <summary>
+    /// Stops all audio manager sounds besides those with the characters "Music" as the first 5 chars of the names
+    /// </summary>
+    public void StopAllSoundsBesideMusic()
+    {
+        foreach (Sound s in sounds)
+        {
+            if (s.source == null) return;
+            if (!(s.name.Substring(0, 5).Equals("Music")))
+                s.source.Stop();
+        }
+    }
+
     public void SetMusicVolume()
     {
         foreach (Sound s in sounds)

@@ -33,6 +33,12 @@ public class PlayerShooting : MonoBehaviour
     public bool IsGrappling { get; private set; }
     public Vector3 GrapplePoint { get; private set; }
 
+    // Grapple animation
+    private Vector3 currentGrapplePoint;
+    private int grappleRopeDivider;
+    private int maxGrappleRopeDivider = 30;
+    private bool grappleContactMade = false;
+
     // Gun Variables =======================
 
     public class GunInformation
@@ -281,12 +287,15 @@ public class PlayerShooting : MonoBehaviour
         // Player must have more than 25% of grapple left to start grapple
         if(!IsGrappling)
         {
-            if (inputMaster.Player.Grapple.ReadValue<float>() != 0 
-                    && timeLeftToGrapple > (maxGrappleTime * .25)
-                    && releasedGrappleControlSinceLastGrapple)
+            if(inputMaster.Player.Grapple.ReadValue<float>() != 0 && releasedGrappleControlSinceLastGrapple)
             {
-                releasedGrappleControlSinceLastGrapple = false;
-                StartGrapple();
+                if (timeLeftToGrapple > (maxGrappleTime * .25))
+                {
+                    releasedGrappleControlSinceLastGrapple = false;
+                    StartGrapple();
+                }
+                else
+                    playerUI.GrappleOutOfBoundsUI();
             }
         }
         if(!releasedGrappleControlSinceLastGrapple)
@@ -359,9 +368,16 @@ public class PlayerShooting : MonoBehaviour
     // Called after Update function
     private void LateUpdate()
     {
-        DrawRope();
         if (IsGrappling)
-            ContinueGrapple();
+        {
+            if (grappleContactMade)
+            {
+                DrawRope();
+                ContinueGrapple();
+            }
+            else
+                DrawIncompleteRope();
+        }
     }
 
     // GUNS =================================================================================
@@ -754,10 +770,15 @@ public class PlayerShooting : MonoBehaviour
     private void StartGrapple()
     {
         Ray ray = new Ray(cam.position, cam.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, maxGrappleDistance, whatIsGrapple ))
+        if (Physics.Raycast(ray, out RaycastHit hit, maxGrappleDistance, whatIsGrapple))
         {
             if (Vector3.Distance(transform.position, hit.point) < minGrappleDistance)
                 return;
+
+            // reset grapple animation variables
+            grappleRopeDivider = maxGrappleRopeDivider;
+            grappleContactMade = false;
+
             if (IsGrappleRecoveryInProgress)
             {
                 IsGrappleRecoveryInProgress = false;
@@ -786,6 +807,8 @@ public class PlayerShooting : MonoBehaviour
             // Lift player off ground
             playerRB.AddForce(Vector2.up * 150);
         }
+        else
+            playerUI.GrappleOutOfBoundsUI();
     }
     
     /// <summary>
@@ -820,6 +843,18 @@ public class PlayerShooting : MonoBehaviour
 
         lineRender.SetPosition(0, grappleFirePoint.position);
         lineRender.SetPosition(1, GrapplePoint);
+    }
+
+    private void DrawIncompleteRope()
+    {
+        if (!IsGrappling) return;
+        currentGrapplePoint = (GrapplePoint - grappleFirePoint.position) / grappleRopeDivider + grappleFirePoint.position;
+        grappleRopeDivider--;
+
+        lineRender.SetPosition(0, grappleFirePoint.position);
+        lineRender.SetPosition(1, currentGrapplePoint);
+        if (grappleRopeDivider <= 1)
+            grappleContactMade = true;
     }
 
     /// <summary>

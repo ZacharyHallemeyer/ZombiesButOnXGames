@@ -552,8 +552,14 @@ public class ControlsMenu : MonoBehaviour
     public void OnRebindComplete()
     {
         rebindingOperation.Dispose();
-        FindObjectOfType<PlayerShooting>().RebindContols();
-        FindObjectOfType<PlayerMovement>().RebindContols();
+        if(FindObjectOfType<PlayerShooting>() != null)
+            FindObjectOfType<PlayerShooting>().RebindContols();
+        if(FindObjectOfType<PlayerMovement>() != null)
+            FindObjectOfType<PlayerMovement>().RebindContols();
+        if(FindObjectOfType<SurvivalPlayerMovement>() != null)
+            FindObjectOfType<SurvivalPlayerMovement>().RebindContols();
+        if(FindObjectOfType<SurvivalPlayerShoot>() != null)
+            FindObjectOfType<SurvivalPlayerShoot>().RebindContols();
         rebindInPogress = false;
     }
 

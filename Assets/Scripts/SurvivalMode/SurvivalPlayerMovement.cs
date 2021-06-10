@@ -5,14 +5,14 @@ using UnityEngine;
 public class SurvivalPlayerMovement : Movement
 {
     //Assingables
-    public Transform playerCam;
+    public Rigidbody rb;
+    public Camera playerCam;
+    public Transform playerCamPosition;
     public Transform orientation;
     public SurvivalPlayerShoot playerShooting;
     public PlayerUIScript playerUIScript;
     private InputMaster inputMaster;
 
-    //Other
-    private Rigidbody rb;
 
     // Ground Check
     public Transform groundCheck;
@@ -21,8 +21,14 @@ public class SurvivalPlayerMovement : Movement
     //Rotation and look
     private float xRotation;
     private float desiredX;
-    private float sensitivity = 2000f;
-    private float sensMultiplier = 1f;
+    private float normalFOV = 60;
+    private float adsFOV = 40;
+    public float sensitivity = 2000f;
+    private float normalSensitivity = 2000f;
+    private float adsSensitivity = 500f;
+    // Default value for sens multipliers are 1 
+    public float sensMultiplier { get; set; } = 1f;
+    public float adsSensMultiplier { get; set; } = 1f;
 
     //Movement
     private readonly int moveSpeed = 4500;
@@ -68,8 +74,18 @@ public class SurvivalPlayerMovement : Movement
 
     void Awake()
     {
+        SetControls setControls = gameObject.AddComponent<SetControls>();
         inputMaster = new InputMaster();
-        rb = GetComponent<Rigidbody>();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
+        sensMultiplier = PlayerPrefs.GetFloat("Sens", 1f);
+        adsSensMultiplier = PlayerPrefs.GetFloat("ADSSens", 1f);
+    }
+
+    public void RebindContols()
+    {
+        SetControls setControls = gameObject.AddComponent<SetControls>();
+        inputMaster = new InputMaster();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
     }
 
     public void OnEnable()
@@ -135,6 +151,17 @@ public class SurvivalPlayerMovement : Movement
         if (crouching)
             if (inputMaster.Player.Crouch.ReadValue<float>() == 0 && !IsOnWall && !playerShooting.IsGrappling)
                 StopCrouch();
+
+        // AIM DOWN SIGHTS
+        if (inputMaster.Player.ADS.ReadValue<float>() != 0)
+        {
+            if (playerShooting.IsGrappling)
+                sensitivity = normalSensitivity;
+            else if (sensitivity != adsSensitivity)
+                sensitivity = adsSensitivity;
+        }
+        else if (sensitivity != normalSensitivity)
+            sensitivity = normalSensitivity;
     }
 
     /// <summary>
@@ -324,7 +351,7 @@ public class SurvivalPlayerMovement : Movement
                        * sensitivity * Time.fixedDeltaTime * sensMultiplier;
 
         //Find current look rotation
-        Vector3 rot = playerCam.transform.localRotation.eulerAngles;
+        Vector3 rot = playerCamPosition.transform.localRotation.eulerAngles;
         desiredX = rot.y + mouseX;
 
         //Rotate, and also make sure we dont over- or under-rotate.
@@ -332,7 +359,7 @@ public class SurvivalPlayerMovement : Movement
         xRotation = Mathf.Clamp(xRotation, -89f, 89f);
 
         // Perform the rotations
-        playerCam.localRotation = Quaternion.Euler(xRotation, desiredX, wallRunCameraTilt);
+        playerCamPosition.localRotation = Quaternion.Euler(xRotation, desiredX, wallRunCameraTilt);
         orientation.localRotation = Quaternion.Euler(0, desiredX, 0);
 
 
@@ -350,6 +377,11 @@ public class SurvivalPlayerMovement : Movement
         else if (wallRunCameraTilt < 0 && !isWallRight && !isWallLeft)
             wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
 
+        // ADS zoom in and out
+        if (sensitivity == adsSensitivity && playerCam.fieldOfView > adsFOV)
+            playerCam.fieldOfView -= 1f;
+        if (sensitivity == normalSensitivity && playerCam.fieldOfView < normalFOV)
+            playerCam.fieldOfView += 1f;
     }
 
     private void CounterMovement(float x, float y, Vector2 mag)

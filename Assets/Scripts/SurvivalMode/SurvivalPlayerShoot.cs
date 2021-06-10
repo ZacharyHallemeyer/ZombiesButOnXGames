@@ -20,22 +20,38 @@ public class SurvivalPlayerShoot : MonoBehaviour
     public Rigidbody playerRB;
 
     public LayerMask whatIsGrapple;
-    private Coroutine grappleRecovery;
-    public bool releasedGrappleControlSinceLastGrapple = true;
 
     // Numerical variables
-    public float maxGrappleDistance = 200f, maxGrappleTime = 3f, grappleRecoveryIncrement = .01f;
+    private float maxGrappleDistance = 200f, minGrappleDistance = 10f;
+    public float maxGrappleTime = 3f, grappleRecoveryIncrement = .01f;
     public float timeLeftToGrapple;
 
+    private bool releasedGrappleControlSinceLastGrapple = true;
+    public bool IsGrappleRecoveryInProgress { get; set; } = false;
     public bool IsGrappling { get; private set; }
     public Vector3 GrapplePoint { get; private set; }
+
+    // Grapple animation
+    private Vector3 currentGrapplePoint;
+    private int grappleRopeDivider;
+    private int maxGrappleRopeDivider = 30;
+    private bool grappleContactMade = false;
 
     // UI
     public PlayerUIScript playerUI;
 
     private void Awake()
     {
+        SetControls setControls = gameObject.AddComponent<SetControls>();
         inputMaster = new InputMaster();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
+    }
+
+    public void RebindContols()
+    {
+        SetControls setControls = gameObject.AddComponent<SetControls>();
+        inputMaster = new InputMaster();
+        inputMaster = setControls.SetPlayerControls(inputMaster);
     }
 
     public void OnEnable()
@@ -72,7 +88,6 @@ public class SurvivalPlayerShoot : MonoBehaviour
 
     private void Update()
     {
-        // Player must have more than 25% of grapple left to start grapple
         if (!IsGrappling)
         {
             if (inputMaster.Player.Grapple.ReadValue<float>() != 0
@@ -83,18 +98,31 @@ public class SurvivalPlayerShoot : MonoBehaviour
                 StartGrapple();
             }
         }
-        else if (inputMaster.Player.Grapple.ReadValue<float>() == 0
-                || Mathf.Abs((player.position - GrapplePoint).magnitude) < 5f
-                && IsGrappling)
-            StopGrapple();
+        if (!releasedGrappleControlSinceLastGrapple)
+        {
+            if (inputMaster.Player.Grapple.ReadValue<float>() == 0
+                    || Mathf.Abs((player.position - GrapplePoint).magnitude) < 5f
+                    && IsGrappling)
+            {
+                releasedGrappleControlSinceLastGrapple = true;
+                StopGrapple();
+            }
+        }
     }
 
     // Called after Update function
     private void LateUpdate()
     {
-        DrawRope();
         if (IsGrappling)
-            ContinueGrapple();
+        {
+            if(grappleContactMade)
+            {
+                DrawRope();
+                ContinueGrapple();
+            }
+            else
+                DrawIncompleteRope();
+        }
     }
 
     /// <summary>
@@ -107,10 +135,18 @@ public class SurvivalPlayerShoot : MonoBehaviour
         Ray ray = new Ray(cam.position, cam.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, maxGrappleDistance, whatIsGrapple))
         {
+            if (Vector3.Distance(transform.position, hit.point) < minGrappleDistance)
+                return;
+            grappleRopeDivider = maxGrappleRopeDivider;
+            grappleContactMade = false;
+            if (IsGrappleRecoveryInProgress)
+            {
+                IsGrappleRecoveryInProgress = false;
+                CancelInvoke("GrappleRecovery");
+            }
+
             playerMovement.StopCrouch();
             // Turn off grapple recovery
-            if (grappleRecovery != null)
-                StopCoroutine(grappleRecovery);
 
             // Turn player gravity off
             playerRB.useGravity = false;
@@ -155,6 +191,19 @@ public class SurvivalPlayerShoot : MonoBehaviour
     }
 
 
+    private void DrawIncompleteRope()
+    {
+        if (!IsGrappling) return;
+        currentGrapplePoint = (GrapplePoint - grappleFirePoint.position) / grappleRopeDivider 
+                               + grappleFirePoint.position;
+        grappleRopeDivider--;
+
+        lineRender.SetPosition(0, grappleFirePoint.position);
+        lineRender.SetPosition(1, currentGrapplePoint);
+        if (grappleRopeDivider <= 1)
+            grappleContactMade = true;
+    }
+
     /// <summary>
     /// Draw line with linerender from player position to grapple point (grapple point
     /// is found in StartGrapple)
@@ -172,8 +221,11 @@ public class SurvivalPlayerShoot : MonoBehaviour
     /// </summary>
     private void StopGrapple()
     {
-        StartCoroutine(GrappleRecovery());
-        releasedGrappleControlSinceLastGrapple = true;
+        if (!IsGrappleRecoveryInProgress)
+        {
+            IsGrappleRecoveryInProgress = true;
+            InvokeRepeating("GrappleRecovery", 0f, .1f);
+        }
         playerRB.useGravity = true;
         lineRender.positionCount = 0;
         IsGrappling = false;
@@ -182,19 +234,18 @@ public class SurvivalPlayerShoot : MonoBehaviour
 
 
     /// <summary>
-    /// adds time to player's amount of grapple left by calling itself recursively 
+    /// adds time to player's amount of grapple left. Must be called through invoke repeating with
+    /// a repeat time of .1 seconds of scaled time
     /// </summary>
-    /// <returns>waits for .1 seconds</returns>
-    public IEnumerator GrappleRecovery()
+    public void GrappleRecovery()
     {
-        yield return new WaitForSeconds(.1f);
         if (timeLeftToGrapple <= maxGrappleTime)
         {
             timeLeftToGrapple += grappleRecoveryIncrement;
             playerUI.SetGrapple(timeLeftToGrapple);
-            grappleRecovery = StartCoroutine(GrappleRecovery());
         }
+        else
+            CancelInvoke("GrappleRecovery");
     }
-
     // END OF GRAPPLE ================================================================
 }

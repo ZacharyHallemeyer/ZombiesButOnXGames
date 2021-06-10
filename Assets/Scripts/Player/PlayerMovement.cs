@@ -65,7 +65,6 @@ public class PlayerMovement : Movement
     private readonly float wallDistance = 1f;
     public float wallrunForce, maxWallrunTime;
     public float maxWallRunCameraTilt, wallRunCameraTilt;
-    //private readonly float leftHandPosition = -1.5f, rightHandPosition = -0.3f;
     private float currentHandPosition = .15f;
     private float wallRunSpeed = 100f, maxWallRunSpeed = 40f;
     public float timeOnWall, maxtimeOnWall = 3f;
@@ -163,7 +162,6 @@ public class PlayerMovement : Movement
         }
         else if (sensitivity != normalSensitivity)
             sensitivity = normalSensitivity;
-
     }
 
     /// <summary>
@@ -359,8 +357,12 @@ public class PlayerMovement : Movement
         playerCamPosition.localRotation = Quaternion.Euler(xRotation, desiredX, wallRunCameraTilt);
         orientation.localRotation = Quaternion.Euler(0, desiredX, 0);
 
-        
-        // Wallrunning
+        // ADS zoom in and out
+        if (sensitivity == adsSensitivity && playerCam.fieldOfView > adsFOV)
+            playerCam.fieldOfView -= 1f;
+        if (sensitivity == normalSensitivity && playerCam.fieldOfView < normalFOV)
+            playerCam.fieldOfView += 1f;
+
         // Tilts camera in .5 second
         // Prevents camera from spinning on the y-axis at a very fast angular velocity
         if (wallRunCameraTilt < maxWallRunCameraTilt && IsOnWall && isWallRight)
@@ -374,11 +376,6 @@ public class PlayerMovement : Movement
         else if (wallRunCameraTilt < 0 && !isWallRight && !isWallLeft)
             wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
 
-        // ADS zoom in and out
-        if (sensitivity == adsSensitivity && playerCam.fieldOfView > adsFOV)
-            playerCam.fieldOfView -= 1f;
-        if (sensitivity == normalSensitivity && playerCam.fieldOfView < normalFOV)
-            playerCam.fieldOfView += 1f;
     }
 
     private void CounterMovement(float x, float y, Vector2 mag)
@@ -432,16 +429,19 @@ public class PlayerMovement : Movement
             StopCrouch();
 
         // get player off wall if they go over max time
-        if(timeOnWall > maxtimeOnWall)
+        if (timeOnWall > maxtimeOnWall)
         {
-            if (isWallBackward)
-                rb.AddForce(orientation.forward * jumpForce * Time.deltaTime, ForceMode.Impulse);
-            if (isWallForward)
-                rb.AddForce(-orientation.forward * jumpForce * Time.deltaTime, ForceMode.Impulse);
-            if (isWallLeft)
-                rb.AddForce(orientation.right * jumpForce * Time.deltaTime, ForceMode.Impulse);
-            if (isWallRight)
-                rb.AddForce(-orientation.right * jumpForce * Time.deltaTime, ForceMode.Impulse);
+            // if player is in a corner really send them flying
+            if(isWallLeft && isWallRight)
+            {
+                if (isWallForward)
+                    rb.AddForce(-orientation.forward * jumpForce * Time.deltaTime, ForceMode.Impulse);
+                else if (isWallBackward)
+                    rb.AddForce(orientation.forward * jumpForce * Time.deltaTime, ForceMode.Impulse);
+            }
+            // otherwise a subtle nudge to get them off a wall
+            else 
+                WallJump(true);
         }
 
         // Stick player to wall

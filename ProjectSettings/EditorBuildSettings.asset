@@ -15,8 +15,11 @@ EditorBuildSettings:
     path: Assets/Scenes/SurvivalMode.unity
     guid: 136f660769b5dc64da6a84213ab2d1f4
   - enabled: 1
-    path: Assets/Scenes/DeathScreen.unity
+    path: Assets/Scenes/DeathScreenWave.unity
     guid: 0dc08abc3a2daf944bf48f2192b0a2b2
+  - enabled: 1
+    path: Assets/Scenes/DeathScreenSurvival.unity
+    guid: b6c32a5402fc8904683ce00373691e7f
   - enabled: 1
     path: Assets/Scenes/Tutorial.unity
     guid: bab3a00760b06fa4c80611e5e7a6fe52

@@ -154,6 +154,7 @@ public class PlayerStats : MonoBehaviour
     /// </summary>
     private void Death()
     {
+        FindObjectOfType<AudioManager>().StopAllSoundsBesideMusic();
         PlayerData playerData = SaveSystem.LoadPlayerData();
         if (playerData != null)
         {
@@ -229,7 +230,7 @@ public class PlayerStats : MonoBehaviour
         PlayerPrefs.SetInt("LastPointNumber", CurrentPoints);
 
         // Reload current scene
-        SceneManager.LoadScene("DeathScreen");
+        SceneManager.LoadScene("DeathScreenWave");
     }
 
     /// <summary>

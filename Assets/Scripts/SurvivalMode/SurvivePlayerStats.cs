@@ -19,7 +19,7 @@ public class SurvivePlayerStats : MonoBehaviour
 
     // Scripts
     public SurvivalPlayerShoot playerShooting;
-    public SurvivalGameMenu gameMenu;
+    public GameMenu gameMenu;
 
     // UI
     public PlayerUIScript playerUI;
@@ -43,7 +43,6 @@ public class SurvivePlayerStats : MonoBehaviour
     {
         inputMaster.Disable();
     }
-
 
     private void Update()
     {
@@ -115,7 +114,10 @@ public class SurvivePlayerStats : MonoBehaviour
 
         // Save new data
         SaveSystem.SavePlayerData(playerData);
-        // Reload current scene
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
+        // Death Screen
+        PlayerPrefs.SetInt("LastTimeNumber", CurrentPoints);
+
+        SceneManager.LoadScene("DeathScreenSurvival");
     }
 }

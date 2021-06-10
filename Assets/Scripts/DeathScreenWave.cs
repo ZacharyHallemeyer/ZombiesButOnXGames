@@ -1,10 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class DeathScreen : MonoBehaviour
+public class DeathScreenWave : MonoBehaviour
 {
     public TextMeshProUGUI waveText, killsText, pointsText;
 
@@ -18,12 +16,9 @@ public class DeathScreen : MonoBehaviour
         pointsText.text = "POINTS: " + PlayerPrefs.GetInt("LastPointNumber", 0);
     }
 
-    public void PlayAgain()
+    public virtual void PlayAgain()
     {
-        if(PlayerPrefs.GetString("LastMode", "WaveMode") == "WaveMode")
-            SceneManager.LoadScene("WaveMode");
-        else
-            SceneManager.LoadScene("SurvivalMode");
+        SceneManager.LoadScene("WaveMode");
     }
 
     public void ExitToMainMenu()

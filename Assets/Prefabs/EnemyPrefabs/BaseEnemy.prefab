@@ -245,7 +245,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: de869dd40a5e0f844a7b83379b62b97f, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.5195726
+  m_Volume: 0.75
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -347,14 +347,6 @@ MonoBehaviour:
   obstacleCheck: {fileID: 3130984126399017510}
   enemyStats: {fileID: 5816073378212106705}
   maxSpeed: 40
-  randomjumpMultiplier: 5
-  groundedDistance: 1
-  timeMotionless: 0
-  maxTimeMotionless: 2
-  range: 25
-  threshold: 0.75
-  jumpMultiplier: 1.5
-  minJumpVelocity: 7
   grounded: 0
   jumpActive: 0
   whatIsGround:
