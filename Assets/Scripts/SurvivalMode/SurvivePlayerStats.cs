@@ -64,6 +64,16 @@ public class SurvivePlayerStats : MonoBehaviour
     /// </summary>
     private void Death()
     {
+        SaveScore();
+
+        // Death Screen
+        PlayerPrefs.SetInt("LastTimeNumber", CurrentPoints);
+
+        SceneManager.LoadScene("DeathScreenSurvival");
+    }
+
+    public void SaveScore()
+    {
         PlayerData playerData = SaveSystem.LoadPlayerData();
         if (playerData != null)
         {
@@ -114,10 +124,5 @@ public class SurvivePlayerStats : MonoBehaviour
 
         // Save new data
         SaveSystem.SavePlayerData(playerData);
-
-        // Death Screen
-        PlayerPrefs.SetInt("LastTimeNumber", CurrentPoints);
-
-        SceneManager.LoadScene("DeathScreenSurvival");
     }
 }

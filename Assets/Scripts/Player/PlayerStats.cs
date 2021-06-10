@@ -155,6 +155,19 @@ public class PlayerStats : MonoBehaviour
     private void Death()
     {
         FindObjectOfType<AudioManager>().StopAllSoundsBesideMusic();
+        SaveScore();
+
+        // These are used for death screen
+        PlayerPrefs.SetInt("LastWaveNumber", waveSpawner.waveNumber - 1);
+        PlayerPrefs.SetInt("LastKillNumber", TotalEnemiesKilled);
+        PlayerPrefs.SetInt("LastPointNumber", CurrentPoints);
+
+        // Reload current scene
+        SceneManager.LoadScene("DeathScreenWave");
+    }
+
+    public void SaveScore()
+    {
         PlayerData playerData = SaveSystem.LoadPlayerData();
         if (playerData != null)
         {
@@ -190,7 +203,6 @@ public class PlayerStats : MonoBehaviour
                     return;
             }
 
-            SaveSystem.SavePlayerData(playerData);
         }
         // if no current data
         else
@@ -221,16 +233,8 @@ public class PlayerStats : MonoBehaviour
                     break;
             }
 
-            SaveSystem.SavePlayerData(playerData);
         }
-
-        // These are used for death screen
-        PlayerPrefs.SetInt("LastWaveNumber", waveSpawner.waveNumber - 1);
-        PlayerPrefs.SetInt("LastKillNumber", TotalEnemiesKilled);
-        PlayerPrefs.SetInt("LastPointNumber", CurrentPoints);
-
-        // Reload current scene
-        SceneManager.LoadScene("DeathScreenWave");
+        SaveSystem.SavePlayerData(playerData);
     }
 
     /// <summary>

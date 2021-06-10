@@ -255,7 +255,10 @@ public class PlayerUIScript : MonoBehaviour
 
     public void ChangeDeathUI(int currentAmountOfLives)
     {
-        deathText.text = currentAmountOfLives.ToString() + " MORE CHANCES!";
+        if(currentAmountOfLives == 1)
+            deathText.text = currentAmountOfLives.ToString() + " MORE CHANCE!";
+        else
+            deathText.text = currentAmountOfLives.ToString() + " MORE CHANCES!";
         InvokeRepeating("HideDeathUI", 3f, 0f);
     }
 

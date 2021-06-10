@@ -6,10 +6,10 @@ public class SurvivalModeScript : MonoBehaviour
 {
     public GameObject survivalEnemyPrefab;
 
-    public int maxNumOfEnemies;
-    public int rate;
-    public int maxSpeed;
-    public int speedForce;
+    private int maxNumOfEnemies;
+    private int rate;
+    private int maxSpeed;
+    private int speedForce;
 
     private float timeOfLastSpawn;
     private Vector3 spawnPosition = new Vector3(0, 110, 0);
@@ -18,7 +18,7 @@ public class SurvivalModeScript : MonoBehaviour
     void Start()
     {
         // Make sure to spawn enemy at start
-        timeOfLastSpawn = -11;
+        timeOfLastSpawn = -100;
         switch (PlayerPrefs.GetString("Difficulty"))
         {
             case "Easy":

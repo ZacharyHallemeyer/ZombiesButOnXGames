@@ -775,6 +775,8 @@ public class PlayerShooting : MonoBehaviour
             if (Vector3.Distance(transform.position, hit.point) < minGrappleDistance)
                 return;
 
+            audioManager.Play("Grapple");
+
             // reset grapple animation variables
             grappleRopeDivider = maxGrappleRopeDivider;
             grappleContactMade = false;

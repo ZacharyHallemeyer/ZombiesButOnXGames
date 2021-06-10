@@ -72,7 +72,12 @@ public class GameMenu : MainMenu
 
     public void ExitToMainMenu()
     {
+        if (FindObjectOfType<PlayerStats>() != null)
+            FindObjectOfType<PlayerStats>().SaveScore();
+        if (FindObjectOfType<SurvivePlayerStats>() != null)
+            FindObjectOfType<SurvivePlayerStats>().SaveScore();
         SceneManager.LoadScene("MainMenu");
+        
     }
 
     public override void SetSliderUI()

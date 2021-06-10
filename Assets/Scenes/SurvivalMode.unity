@@ -267,22 +267,22 @@ MonoBehaviour:
   buildingMinZ: 10
   buildingMaxZ: 30
   spaceBetweenBuildingsMultiplier: 1.3
-  buildingMinCount: 7
-  buildingMaxCount: 15
+  buildingMinCount: 15
+  buildingMaxCount: 20
   buildingCount: 0
   perlinOffsetMin: 0
   perlinOffsetMax: 10000
   xOffset: 0
   yOffset: 0
   scale: 4
-  groundLightMinCount: 6
-  groundLightMaxCount: 9
+  groundLightMinCount: 10
+  groundLightMaxCount: 12
   perWallLightMinCount: 3
   perWallLightMaxCount: 6
   spaceBetweenWallAndLight: 0
   sunCountMin: 5
   sunCountMax: 10
-  sunRadiusMin: 5
+  sunRadiusMin: 2
   sunRadiusMax: 20
 --- !u!4 &541652257
 Transform:
@@ -312,10 +312,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   survivalEnemyPrefab: {fileID: 6904537185049715922, guid: 3686306e64661a2489fd22c100bb695b,
     type: 3}
-  maxNumOfEnemies: 0
-  rate: 0
-  maxSpeed: 0
-  speedForce: 0
 --- !u!1 &633411814
 GameObject:
   m_ObjectHideFlags: 0

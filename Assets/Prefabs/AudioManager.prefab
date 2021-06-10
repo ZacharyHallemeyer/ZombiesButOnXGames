@@ -98,5 +98,11 @@ MonoBehaviour:
     pitch: 1
     looping: 0
     source: {fileID: 0}
+  - name: Grapple
+    clip: {fileID: 8300000, guid: e3f06a1a9210961498efdbb6d75e3be1, type: 3}
+    volume: 0.474
+    pitch: 1
+    looping: 0
+    source: {fileID: 0}
   enemyPefab: {fileID: 1582176475825200959, guid: 85ab35a2ee2ebc2439400202b3236ccb,
     type: 3}
