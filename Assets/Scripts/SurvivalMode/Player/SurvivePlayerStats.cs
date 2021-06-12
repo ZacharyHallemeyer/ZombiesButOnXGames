@@ -104,6 +104,7 @@ public class SurvivePlayerStats : MonoBehaviour
         // if no current data
         else
         {
+            playerData = new PlayerData();
             // minus 1 from current wave number because we want completed waves 
             switch (PlayerPrefs.GetString("Difficulty"))
             {

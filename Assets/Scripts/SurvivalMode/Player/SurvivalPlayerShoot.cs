@@ -156,7 +156,6 @@ public class SurvivalPlayerShoot : MonoBehaviour
             }
 
             playerMovement.StopCrouch();
-            // Turn off grapple recovery
 
             // Turn player gravity off
             playerRB.useGravity = false;

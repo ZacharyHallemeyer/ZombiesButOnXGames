@@ -368,15 +368,16 @@ public class PlayerMovement : Movement
 
         // Tilts camera in .5 second
         // Prevents camera from spinning on the y-axis at a very fast angular velocity
+        // maxWallRunCameraTilt - wallRunCameraTilt < -.1f, wallRunCameraTilt < maxWallRunCameraTilt
         if (wallRunCameraTilt < maxWallRunCameraTilt && IsOnWall && isWallRight)
             wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
-        else if (wallRunCameraTilt > -maxWallRunCameraTilt && IsOnWall && isWallLeft)
+        if (wallRunCameraTilt > -maxWallRunCameraTilt && IsOnWall && isWallLeft)
             wallRunCameraTilt -= Time.deltaTime * maxWallRunCameraTilt * 2;
 
         // Tilts camera back again
-        if(wallRunCameraTilt > 0 && !isWallRight && !isWallLeft)
+        if(wallRunCameraTilt > .2f && !isWallRight && !isWallLeft)
             wallRunCameraTilt -= Time.deltaTime * maxWallRunCameraTilt * 2;
-        else if (wallRunCameraTilt < 0 && !isWallRight && !isWallLeft)
+        else if (wallRunCameraTilt < -.2f && !isWallRight && !isWallLeft)
             wallRunCameraTilt += Time.deltaTime * maxWallRunCameraTilt * 2;
 
     }
@@ -448,6 +449,7 @@ public class PlayerMovement : Movement
         }
 
         // Stick player to wall
+        /*
         if (isWallRight)
             rb.AddForce(orientation.right * wallrunForce / 5 * Time.deltaTime);
         else if(isWallLeft)
@@ -456,6 +458,7 @@ public class PlayerMovement : Movement
             rb.AddForce(orientation.forward * wallrunForce / 5 * Time.deltaTime);
         else if (isWallBackward)
             rb.AddForce(-orientation.forward * wallrunForce / 5 * Time.deltaTime);
+        */
     }
 
     /// <summary>
@@ -474,10 +477,10 @@ public class PlayerMovement : Movement
     {
         IsOnWall = Physics.CheckSphere(wallCheck.position + Vector3.up, wallDistance, whatIsWall);
         if (IsOnWall) Wallrun();
-        isWallRight = Physics.Raycast(transform.position, orientation.right, 2f, whatIsWall);
-        isWallLeft = Physics.Raycast(transform.position, -orientation.right, 2f, whatIsWall);
-        isWallForward = Physics.Raycast(transform.position, orientation.forward, 2f, whatIsWall);
-        isWallBackward = Physics.Raycast(transform.position, -orientation.forward, 2f, whatIsWall);
+        isWallRight = Physics.Raycast(transform.position, orientation.right, 1f, whatIsWall);
+        isWallLeft = Physics.Raycast(transform.position, -orientation.right, 1f, whatIsWall);
+        isWallForward = Physics.Raycast(transform.position, orientation.forward, 1f, whatIsWall);
+        isWallBackward = Physics.Raycast(transform.position, -orientation.forward, 1f, whatIsWall);
 
         //leave wall run
         if (!IsOnWall && !playerShooting.IsGrappling) StopWallRun();

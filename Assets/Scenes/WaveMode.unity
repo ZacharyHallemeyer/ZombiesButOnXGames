@@ -437,12 +437,12 @@ MonoBehaviour:
   buildingMaxY: 200
   buildingMinZ: 10
   buildingMaxZ: 50
-  spaceBetweenBuildingsMultiplier: 1.2
+  spaceBetweenBuildingsMultiplier: 1.4
   buildingMinCount: 50
   buildingMaxCount: 75
   buildingCount: 0
   perlinOffsetMin: 0
-  perlinOffsetMax: 0
+  perlinOffsetMax: 10000
   xOffset: 0
   yOffset: 0
   scale: 6
@@ -454,7 +454,7 @@ MonoBehaviour:
   sunCountMin: 5
   sunCountMax: 15
   sunRadiusMin: 5
-  sunRadiusMax: 10
+  sunRadiusMax: 30
   playerStats: {fileID: 0}
   powerUpSpawnPositions:
   - {x: 0, y: 0, z: 0}

@@ -270,18 +270,25 @@ public class GenerateWaveEnvironment : MonoBehaviour
     {
         GameObject currentSun;
         int sunCount = Random.Range(sunCountMin, sunCountMax);
-        int sunRadius;
+        int sunRadius, errorCatchCounter;
         int xCoord, yCoord, zCoord;
 
         for(int i = 0; i < sunCount; i++)
         {
+            errorCatchCounter = 0;
+
             do
             {
+                errorCatchCounter++;
+                if (errorCatchCounter > 1000)
+                    return;
+
                 xCoord = Random.Range(startOfGroundX + spaceBetweenWallAndLight, endOfGroundX - spaceBetweenWallAndLight);
                 yCoord = Random.Range(outsideWallSize / 2, 3 * outsideWallSize / 4);
                 zCoord = Random.Range(startOfGroundZ + spaceBetweenWallAndLight, endOfGroundZ - spaceBetweenWallAndLight);
                 sunRadius = Random.Range(sunRadiusMin, sunRadiusMax);
             } while (CheckIfSun(new Vector3(xCoord, yCoord, zCoord), sunRadius)) ;
+
             currentSun = Instantiate(sunPrefab, new Vector3(xCoord, yCoord, zCoord), transform.rotation);
             currentSun.transform.localScale *= sunRadius;
             currentSun.GetComponent<Renderer>().material = sunMaterials[Random.Range(0, sunMaterials.Length)];

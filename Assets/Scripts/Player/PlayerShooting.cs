@@ -39,7 +39,7 @@ public class PlayerShooting : MonoBehaviour
     // Grapple animation
     private Vector3 currentGrapplePoint;
     private int grappleRopeDivider;
-    private int maxGrappleRopeDivider = 30;
+    private int maxGrappleRopeDivider = 15;
     private bool grappleContactMade = false;
 
     // Gun Variables =======================
@@ -731,7 +731,7 @@ public class PlayerShooting : MonoBehaviour
                 playerMovement.InvokeRepeating("StartCrouchAnimation", 0, .1f / playerMovement.crouchGunDegree);
                 secondaryGun.gunContainer.transform.localRotation = Quaternion.Euler(0, 0, 0);
             }
-
+            playerUI.ChangeGunUIText(currentGun.currentAmmo, currentGun.reserveAmmo);
             InvokeRepeating("ChangeCurrentGunAnimationCompress", 0f, 1f / 10);
             yield break;
         }
