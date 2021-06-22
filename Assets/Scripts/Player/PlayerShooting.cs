@@ -39,7 +39,7 @@ public class PlayerShooting : MonoBehaviour
     // Grapple animation
     private Vector3 currentGrapplePoint;
     private int grappleRopeDivider;
-    private int maxGrappleRopeDivider = 15;
+    private int maxGrappleRopeDivider = 10;
     private bool grappleContactMade = false;
 
     // Gun Variables =======================

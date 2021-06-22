@@ -47,8 +47,11 @@ public class SurvivePlayerStats : MonoBehaviour
 
     private void Update()
     {
-        CurrentPoints = (int) Time.timeSinceLevelLoad;
-        playerUI.SetPointText(CurrentPoints);
+        if(CurrentPoints < (int)Time.timeSinceLevelLoad)
+        {
+            CurrentPoints = (int) Time.timeSinceLevelLoad;
+            playerUI.SetPointTextNoDisappearingText(CurrentPoints);
+        }
         if (inputMaster.Player.Escape.triggered)
             gameMenu.PauseGame();
     }

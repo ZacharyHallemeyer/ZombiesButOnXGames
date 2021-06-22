@@ -175,7 +175,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 500
+  MaxDistance: 30
   Pan2D: 1
   rolloffMode: 0
   BypassEffects: 0
@@ -268,14 +268,6 @@ MonoBehaviour:
   obstacleCheck: {fileID: 3130984126399017510}
   enemyStats: {fileID: 5816073378212106705}
   maxSpeed: 40
-  randomjumpMultiplier: 5
-  groundedDistance: 1
-  timeMotionless: 0
-  maxTimeMotionless: 2
-  range: 25
-  threshold: 0.75
-  jumpMultiplier: 1.5
-  minJumpVelocity: 7
   grounded: 0
   jumpActive: 0
   whatIsGround:

@@ -488,19 +488,23 @@ public class PlayerMovement : Movement
         if (isWallLeft || isWallRight ) jumpsAvaliable = maxJumps;
 
         // Switch hand gun is in (Prevents gun from phasing into wall)
+        // use form playerShooting.currentGun.rightHandPosition - gunPosition.localPosition.x < .1f instead of
+        // form gunPosition.localPosition.x > playerShooting.currentGun.leftHandPosition
+        // to prevent player weapon from glitching back and forth when player is close but not on a wall
         if (isWallRight && isWallLeft) return;
-        if (!IsOnWall && gunPosition.localPosition.x < playerShooting.currentGun.rightHandPosition)
+        if (!IsOnWall && playerShooting.currentGun.rightHandPosition - gunPosition.localPosition.x > .1f )
         {
             currentHandPosition = Time.deltaTime * playerShooting.currentGun.rightHandPosition * 14;
             gunPosition.localPosition -= Vector3.right * currentHandPosition;
         }
-        else if (isWallLeft && gunPosition.localPosition.x < playerShooting.currentGun.rightHandPosition)
+        else if (isWallLeft && playerShooting.currentGun.rightHandPosition - gunPosition.localPosition.x > .1f)
         {
             currentHandPosition = Time.deltaTime * playerShooting.currentGun.rightHandPosition * 14;
             gunPosition.localPosition -= Vector3.right * currentHandPosition;
 
         }
-        else if (isWallRight && gunPosition.localPosition.x > playerShooting.currentGun.leftHandPosition)
+        // gunPosition.localPosition.x > playerShooting.currentGun.leftHandPosition
+        else if (isWallRight && playerShooting.currentGun.rightHandPosition - gunPosition.localPosition.x < .1f)
         {
             currentHandPosition = Time.deltaTime * playerShooting.currentGun.leftHandPosition * 4;
             gunPosition.localPosition += Vector3.right * currentHandPosition;

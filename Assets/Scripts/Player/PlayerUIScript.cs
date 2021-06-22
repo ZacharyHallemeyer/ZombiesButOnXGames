@@ -114,6 +114,11 @@ public class PlayerUIScript : MonoBehaviour
         ChangeDisappearingText(points);
     }
 
+    public void SetPointTextNoDisappearingText(int points)
+    {
+        pointMainText.text = points.ToString();
+    }
+
     public void ChangeDisappearingText(int points)
     {
         if (points - oldPoint > 0)
